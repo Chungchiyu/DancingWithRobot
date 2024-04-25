@@ -16,6 +16,8 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import URDFLoader from '../../src/URDFLoader.js';
+import React from 'react'
+import ReactPlayer from 'react-player/lazy'
 
 let scene, camera, renderer, robot, controls;
 
@@ -28,7 +30,7 @@ function init() {
     scene.background = new Color(0x263238);
 
     camera = new PerspectiveCamera();
-    camera.position.set(10, 10, 10);
+    camera.position.set(1, 1, 1);
     camera.lookAt(0, 0, 0);
 
     renderer = new WebGLRenderer({ antialias: true });
@@ -60,7 +62,7 @@ function init() {
     // Load robot
     const manager = new LoadingManager();
     const loader = new URDFLoader(manager);
-    loader.load('../../../urdf/T12/urdf/T12_flipped.URDF', result => {
+    loader.load('../../../urdf/Hiwin/hiwin_ra620_1621_support/urdf/ra620_1621.urdf', result => {
 
         robot = result;
 
@@ -75,9 +77,9 @@ function init() {
         });
         for (let i = 1; i <= 6; i++) {
 
-            robot.joints[`HP${ i }`].setJointValue(MathUtils.degToRad(30));
-            robot.joints[`KP${ i }`].setJointValue(MathUtils.degToRad(120));
-            robot.joints[`AP${ i }`].setJointValue(MathUtils.degToRad(-60));
+            robot.joints[`joint_${ i }`].setJointValue(MathUtils.degToRad(180));
+            // robot.joints[`KP${ i }`].setJointValue(MathUtils.degToRad(120));
+            // robot.joints[`AP${ i }`].setJointValue(MathUtils.degToRad(-60));
 
         }
         robot.updateMatrixWorld(true);
@@ -92,7 +94,6 @@ function init() {
 
     onResize();
     window.addEventListener('resize', onResize);
-
 }
 
 function onResize() {
@@ -100,7 +101,7 @@ function onResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
 
-    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.aspect = window.innerWidth / (window.innerHeight);
     camera.updateProjectionMatrix();
 
 }
