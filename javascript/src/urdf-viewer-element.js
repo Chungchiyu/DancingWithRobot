@@ -152,7 +152,7 @@ class URDFViewer extends HTMLElement {
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: THREE.MOUSE.DOLLY,
             RIGHT: THREE.MOUSE.ROTATE,
-        }
+        };
         // Nickchung changed
 
         controls.maxDistance = 50;
