@@ -145,6 +145,16 @@ class URDFViewer extends HTMLElement {
         controls.panSpeed = 2;
         controls.enableZoom = true;
         controls.enableDamping = false;
+
+        // Nickchung changed
+        controls.enablePan = false;
+        controls.mouseButtons = {
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: THREE.MOUSE.ROTATE,
+        }
+        // Nickchung changed
+
         controls.maxDistance = 50;
         controls.minDistance = 0.25;
         controls.addEventListener('change', () => this.recenter());
