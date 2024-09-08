@@ -330,7 +330,8 @@ window.newCard = function () {
         </div>
         <div class="duration">
             <div class="number">1</div>
-            <input value="${window.jointsData[0].time}"></input>
+            <div id="group-card">${window.groupNameSelected}</div>
+            <input value="${Math.round(window.jointsData[0].time*100)/100}"></input>
             <button class="duration-btn">s</button>
         </div>
         <button class="close">X</button>
@@ -396,7 +397,8 @@ window.newCard = function () {
     new Sortable(cardContainer, {
         ghostClass: 'highlighted', // The class applied to the hovered swap item
         animation: 150,
-        filter: 'input'
+        filter: 'input',
+        preventOnFilter: false
     });
 
     updateJointsSet();
@@ -572,10 +574,14 @@ addBtn.addEventListener('click', function () {
 
     cardContainer.appendChild(card);
 
-    new Sortable(cardContainer, {
-        ghostClass: 'highlighted', // The class applied to the hovered swap item
-        animation: 150
+    const sortable = new Sortable(cardContainer, {
+        ghostClass: 'highlighted',
+        animation: 150,
+        filter: 'input',
+        preventOnFilter: false
     });
+    
+    
 
     updateJointsSet();
 });

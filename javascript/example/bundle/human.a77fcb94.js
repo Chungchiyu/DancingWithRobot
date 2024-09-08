@@ -267,8 +267,8 @@ var selectedCoordinateLine = null;
 var showCoordinateSystem = false;
 var selectedButton = null;
 
-// Initial draw of the dashed circle
-drawDashedCircle();
+// Initial draw of the dashed ellipse
+drawDashedEllipse();
 
 // Modify the CSS for the SVG layer to ensure it's always on top
 svg.style.zIndex = '9999';
@@ -348,29 +348,48 @@ function calculateAngle(p1, p2, p3) {
 function createSVGElement(type) {
   return document.createElementNS("http://www.w3.org/2000/svg", type);
 }
-function drawDashedCircle() {
-  var circle = createSVGElement('circle');
-  circle.setAttribute('cx', '150');
-  circle.setAttribute('cy', '40');
-  circle.setAttribute('r', '35');
-  circle.setAttribute('fill', 'none');
-  circle.setAttribute('stroke', 'black');
-  circle.setAttribute('stroke-width', '2');
-  circle.setAttribute('stroke-dasharray', '5,5');
-  svg.appendChild(circle);
+function drawDashedEllipse() {
+  var ellipse = createSVGElement('ellipse');
+  ellipse.setAttribute('cx', '150');
+  ellipse.setAttribute('cy', '50');
+  ellipse.setAttribute('rx', '40');
+  ellipse.setAttribute('ry', '45');
+  ellipse.setAttribute('fill', 'none');
+  ellipse.setAttribute('stroke', 'black');
+  ellipse.setAttribute('stroke-width', '2');
+  ellipse.setAttribute('stroke-dasharray', '5,5');
+  svg.appendChild(ellipse);
 }
 function drawCoordinateSystem(x, y) {
   var size = 50;
   var angles = [0, -Math.PI / 4, -Math.PI / 2, Math.PI / 2, Math.PI, 3 * Math.PI / 4];
   var labels = ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'];
+
+  // Create a map of virtual points
+  var virtualPoints = {};
+  labels.forEach(function (label, index) {
+    virtualPoints[label] = {
+      x: x + size * Math.cos(angles[index]),
+      y: y + size * Math.sin(angles[index]),
+      id: label
+    };
+  });
+
+  // Check if we need to use a virtual point
+  if (selectedPoints.length === 3 && typeof selectedPoints[2].id === 'string') {
+    var virtualLabel = selectedPoints[2].id;
+    if (virtualPoints[virtualLabel]) {
+      selectedPoints[2] = virtualPoints[virtualLabel];
+    }
+  }
   angles.forEach(function (angle, index) {
     var line = createSVGElement('line');
     line.setAttribute('x1', x);
     line.setAttribute('y1', y);
     line.setAttribute('x2', x + size * Math.cos(angle));
     line.setAttribute('y2', y + size * Math.sin(angle));
-    line.setAttribute('stroke', 'black');
-    line.setAttribute('stroke-width', '1');
+    line.setAttribute('stroke', 'green');
+    line.setAttribute('stroke-width', '2');
     line.setAttribute('stroke-dasharray', '5,5');
     line.setAttribute('data-label', labels[index]);
     line.style.transition = 'all 0.3s ease';
@@ -380,25 +399,26 @@ function drawCoordinateSystem(x, y) {
     hitBox.setAttribute('x2', x + size * Math.cos(angle));
     hitBox.setAttribute('y2', y + size * Math.sin(angle));
     hitBox.setAttribute('stroke', 'transparent');
-    hitBox.setAttribute('stroke-width', '3');
+    hitBox.setAttribute('stroke-width', '10');
     var label = createSVGElement('text');
     label.setAttribute('x', x + (size + 10) * Math.cos(angle));
     label.setAttribute('y', y + (size + 10) * Math.sin(angle));
+    label.setAttribute('fill', 'green');
     label.setAttribute('text-anchor', 'middle');
     label.setAttribute('dominant-baseline', 'middle');
     label.textContent = labels[index];
-    label.style.opacity = '0';
+    label.style.opacity = '1';
     hitBox.addEventListener('mouseover', function () {
       line.setAttribute('stroke', 'red');
       line.setAttribute('stroke-width', '2');
-      label.style.opacity = '1';
+      // label.style.opacity = '1';
     });
     hitBox.addEventListener('mouseout', function () {
       if (selectedCoordinateLine !== line) {
-        line.setAttribute('stroke', 'black');
-        line.setAttribute('stroke-width', '1');
+        line.setAttribute('stroke', 'green');
+        line.setAttribute('stroke-width', '2');
       }
-      label.style.opacity = '0';
+      // label.style.opacity = '0';
     });
     hitBox.addEventListener('click', function (e) {
       e.stopPropagation();
@@ -430,6 +450,7 @@ function drawCoordinateSystem(x, y) {
 }
 function updateAngle() {
   svg.innerHTML = '';
+  drawDashedEllipse();
   if (selectedPoints.length >= 2) {
     var _selectedPoints = selectedPoints,
       _selectedPoints2 = _slicedToArray(_selectedPoints, 2),
@@ -443,6 +464,20 @@ function updateAngle() {
     line.setAttribute('stroke', 'blue');
     line.setAttribute('stroke-width', '6');
     svg.appendChild(line);
+    if (selectedPoints.length < 3 || typeof selectedPoints[2].id !== 'number') {
+      drawCoordinateSystem(p2.x, p2.y);
+
+      // Highlight saved coordinate lines
+      selectedPoints.forEach(function (point) {
+        if (typeof point.id === 'string') {
+          var coordinateLine = svg.querySelector("line[data-label=\"".concat(point.id, "\"]"));
+          if (coordinateLine) {
+            coordinateLine.setAttribute('stroke', 'blue');
+            coordinateLine.setAttribute('stroke-width', '2');
+          }
+        }
+      });
+    }
   }
   if (selectedPoints.length === 3) {
     var _selectedPoints3 = selectedPoints,
@@ -463,25 +498,6 @@ function updateAngle() {
     drawAngle(_p, _p2, p3, interiorAngle, 'red', false);
     drawAngle(_p, _p2, p3, exteriorAngle, 'blue', true);
   }
-  if (selectedPoints.length >= 2) {
-    var _selectedPoints5 = selectedPoints,
-      _selectedPoints6 = _slicedToArray(_selectedPoints5, 2),
-      _p3 = _selectedPoints6[0],
-      _p4 = _selectedPoints6[1];
-    drawCoordinateSystem(_p4.x, _p4.y);
-
-    // Highlight saved coordinate lines
-    selectedPoints.forEach(function (point) {
-      if (typeof point.id === 'string') {
-        var coordinateLine = svg.querySelector("line[data-label=\"".concat(point.id, "\"]"));
-        if (coordinateLine) {
-          coordinateLine.setAttribute('stroke', 'blue');
-          coordinateLine.setAttribute('stroke-width', '2');
-        }
-      }
-    });
-  }
-  drawDashedCircle();
 }
 function drawAngle(p1, p2, p3, angle, color, isExteriorAngle) {
   if (isExteriorAngle && !useExteriorAngle) return;
@@ -515,6 +531,18 @@ function drawAngle(p1, p2, p3, angle, color, isExteriorAngle) {
     updateAngle();
   });
   svg.appendChild(path);
+
+  // const text = createSVGElement('text');
+  // const labelRadius = 50;
+  // const labelAngle = (startAngle + endAngle) / 2;
+  // text.setAttribute('x', p2.x + labelRadius * Math.cos(labelAngle));
+  // text.setAttribute('y', p2.y + labelRadius * Math.sin(labelAngle));
+  // text.setAttribute('font-size', '14px');
+  // text.setAttribute('fill', color);
+  // text.setAttribute('text-anchor', 'middle');
+  // text.textContent = `${(angle * 180 / Math.PI).toFixed(2)}°`;
+
+  // svg.appendChild(text);
 }
 
 // Create save buttons
@@ -695,6 +723,7 @@ function clearFigure() {
 document.getElementById('addGroupBtn').addEventListener('click', addGroup);
 window.groups = [];
 var selectedGroup = null;
+window.groupNameSelected = 'default';
 document.addEventListener('DOMContentLoaded', function () {
   var defaultGroup = {
     name: 'default',
@@ -734,13 +763,45 @@ function updateGroups() {
   groupsContainer.innerHTML = ''; // Clear existing groups
   groups.forEach(function (group, index) {
     var card = document.createElement('div');
-    card.className = 'angleCard';
-    card.innerHTML = "\n            <div class=\"angleCard-label\">G".concat(index + 1, "</div>\n            <div class=\"angleCard-content\">").concat(group.name, "</div>\n        ");
-    card.addEventListener('click', function () {
-      return selectGroup(index);
+    card.className = 'angleCard group-card';
+    card.innerHTML = "\n            <div class=\"angleCard-label\">G".concat(index + 1, "</div>\n            <div class=\"angleCard-content\">").concat(group.name, "</div>\n            ").concat(index !== 0 ? '<span class="delete-group">X</span>' : '', "\n        ");
+    card.addEventListener('click', function (e) {
+      if (!e.target.classList.contains('delete-group')) {
+        selectGroup(index);
+      }
     });
+    if (index !== 0) {
+      var deleteBtn = card.querySelector('.delete-group');
+      deleteBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        deleteGroup(index);
+      });
+    }
     groupsContainer.appendChild(card);
   });
+}
+function deleteGroup(index) {
+  if (index === 0) {
+    alert("The default group cannot be deleted.");
+    return;
+  }
+  if (confirm("Are you sure you want to delete group \"".concat(groups[index].name, "\"?"))) {
+    groups.splice(index, 1);
+    if (selectedGroup === index) {
+      selectedGroup = null;
+      // Load data from angleData
+      for (var _i2 = 1; _i2 <= 6; _i2++) {
+        var card = document.querySelector(".angleCard:nth-of-type(".concat(_i2, ")"));
+        var content = angleData[_i2 - 1] ? angleData[_i2 - 1].map(function (p) {
+          return _typeof(p) === 'object' ? p.id : p;
+        }).join(',') : 'none';
+        card.querySelector('.angleCard-content').textContent = content;
+      }
+    } else if (selectedGroup > index) {
+      selectedGroup--;
+    }
+    updateGroups();
+  }
 }
 function selectGroup(index) {
   if (selectedGroup === index) {
@@ -749,9 +810,9 @@ function selectGroup(index) {
     groupCard.classList.remove('selected');
     selectedGroup = null;
     // Load data from angleData
-    for (var _i2 = 1; _i2 <= 6; _i2++) {
-      var card = document.querySelector(".angleCard:nth-of-type(".concat(_i2, ")"));
-      var content = angleData[_i2 - 1] ? angleData[_i2 - 1].map(function (p) {
+    for (var _i3 = 1; _i3 <= 6; _i3++) {
+      var card = document.querySelector(".angleCard:nth-of-type(".concat(_i3, ")"));
+      var content = angleData[_i3 - 1] ? angleData[_i3 - 1].map(function (p) {
         return _typeof(p) === 'object' ? p.id : p;
       }).join(',') : 'none';
       card.querySelector('.angleCard-content').textContent = content;
@@ -766,11 +827,12 @@ function selectGroup(index) {
     var group = groups[index];
     var _groupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(index + 1, ")"));
     _groupCard.classList.add('selected');
+    groupNameSelected = group.name;
     if (group && group.data) {
       // Update J1~J6 angleCards with the group data
-      for (var _i3 = 1; _i3 <= 6; _i3++) {
-        var _card = document.querySelector(".angleCard:nth-of-type(".concat(_i3, ")"));
-        var _content = group.data["J".concat(_i3)] || 'none';
+      for (var _i4 = 1; _i4 <= 6; _i4++) {
+        var _card = document.querySelector(".angleCard:nth-of-type(".concat(_i4, ")"));
+        var _content = group.data["J".concat(_i4)] || 'none';
         _card.querySelector('.angleCard-content').textContent = _content;
       }
     }

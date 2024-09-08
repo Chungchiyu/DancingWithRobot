@@ -74,16 +74,16 @@ fileInput.addEventListener('change', loadVideo);
 restartButton.addEventListener('click', restart);
 closeButton.addEventListener('click', closeVideo);
 
-poseDetectToggle.addEventListener('click', () => { 
+poseDetectToggle.addEventListener('click', () => {
   poseDetectToggle.classList.toggle('checked');
   estimatePoses();
   if (poseDetectToggle.classList.contains('checked'))
     canvas.style.display = '';
   else
     canvas.style.display = 'none';
- });
+});
 
-linkRobot.addEventListener('click', () => { 
+linkRobot.addEventListener('click', () => {
   linkRobot.classList.toggle('checked');
   estimatePoses();
 });
@@ -138,7 +138,7 @@ function drawPoses(poses) {
     const pose = poses[0];
 
     poses.forEach(pose => {
-  
+
       const connections = poseDetection.util.getAdjacentPairs(model);
       connections.forEach(([i, j]) => {
         const kp1 = pose.keypoints[i];
@@ -167,7 +167,7 @@ function drawPoses(poses) {
       });
     });
 
-    const angles = calculateAllAngles(pose.keypoints3D);
+    const angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
     displayAngles(ctx, angles);
 
     const remapAngles = angleMapping(angles);
@@ -184,7 +184,7 @@ function drawPoses(poses) {
   //   const pose = poses[0];
   //   pose.keypoints3D.forEach(keypoint => {
   //     if (keypoint.score > 0.3) {
-        
+
   //       const [x, y] = project3DTo2D(keypoint.x, keypoint.y, keypoint.z);
   //       ctx.beginPath();
   //       ctx.arc(x * scaleX, y * scaleY, keyPointRadius, 0, 2 * Math.PI);
@@ -195,30 +195,38 @@ function drawPoses(poses) {
   // }
 }
 
+let angleOut = [];
 function angleMapping(angles) {
-  const out = [];
 
-  out.A1 = angles.A1 > 90 ? 90 : angles.A1;
-  out.A1 = angles.A1 < -90 ? -90 : angles.A1;
-  out.A1 = map(out.A1, 90, -90, -110, 110);
+  if (angles.J1 !== 'undefined' && angles.J1 !== 'nan') {
+    angleOut.J1 = angles.J1 > 90 ? 90 : angles.J1;
+    angleOut.J1 = angles.J1 < -90 ? -90 : angles.J1;
+    angleOut.J1 = map(angleOut.J1, 90, -90, -110, 110);
+  }
 
-  out.A2 = angles.A2 > 180 ? 180 : angles.A2;
-  out.A2 = angles.A2 < -180 ? -180 : angles.A2;
-  out.A2 = map(angles.A2, 60, 0, -50, 0);
+  if (angles.J2 !== 'undefined' && angles.J2 !== 'nan') {
+    angleOut.J2 = angles.J2 > 180 ? 180 : angles.J2;
+    angleOut.J2 = angles.J2 < -180 ? -180 : angles.J2;
+    angleOut.J2 = map(angles.J2, 60, 0, -50, 0);
+  }
 
-  out.A3 = angles.A3 > 180 ? 180 : angles.A3;
-  out.A3 = angles.A3 < -180 ? -180 : angles.A3;
-  out.A3 = map(angles.A3, 0, 180, -80, 90);
+  if (angles.J3 !== 'undefined' && angles.J3 !== 'nan') {
+    angleOut.J3 = angles.J3 > 180 ? 180 : angles.J3;
+    angleOut.J3 = angles.J3 < -180 ? -180 : angles.J3;
+    angleOut.J3 = map(angles.J3, 0, 180, -80, 90);
+  }
 
-  out.A4 = 0;
+  angleOut.J4 = 0;
 
-  out.A5 = angles.A5 > 180 ? 180 : angles.A5;
-  out.A5 = angles.A5 < -180 ? -180 : angles.A5;
-  out.A5 = map(angles.A5, 180, 90, 0, -90);
+  if (angles.J5 !== 'undefined' && angles.J5 !== 'nan') {
+    angleOut.J5 = angles.J5 > 180 ? 180 : angles.J5;
+    angleOut.J5 = angles.J5 < -180 ? -180 : angles.J5;
+    angleOut.J5 = map(angles.J5, 180, 90, 0, -90);
+  }
 
-  out.A6 = 0;
+  angleOut.J6 = 0;
 
-  return out;
+  return angleOut;
 }
 
 function map(input, in_min, in_max, out_min, out_max) {
@@ -234,14 +242,14 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
   }
   Object.entries(group.data).forEach(([key, value]) => {
     const points = value.split(',').map(id => id.trim());
-    
+
     if (points.length === 3) {
       const [a, b, c] = points.map(i => {
         if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
         return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
       });
       if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
-        angles[key] = calculateAngle3D(a, b, c);
+        angles[key] = calculateAngle(a, b, c);
       } else {
         console.warn(`Low confidence for angle ${key}, skipping calculation`);
       }
@@ -252,42 +260,68 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
   return angles;
 }
 
-function calculateAngle3D(A, B, C) {
+function calculateAngle(A, B, C) {
+  // Check if we're dealing with 2D or 3D calculation
+  const is3D = typeof C === 'string';
+
   // Vector from B to A
-  const BA = { x: A.x - B.x, y: A.y - B.y, z: A.z - B.z };
-  
-  let axisVector;
-  switch(C) {
-    case "OH": axisVector = { x: 0, y: 0, z: -1 }; break;
-    case "DV": axisVector = { x: 0, y: -1, z: 0 }; break;
-    case "RH": axisVector = { x: 1, y: 0, z: 0 }; break;
-    case "IH": axisVector = { x: 0, y: 0, z: 1 }; break;
-    case "UV": axisVector = { x: 0, y: 1, z: 0 }; break;
-    case "LH": axisVector = { x: -1, y: 0, z: 0 }; break;
-    default:
-      // If C is not one of the special cases, calculate as before
-      const BC = { x: C.x - B.x, y: C.y - B.y, z: C.z - B.z };
-      return calculateAngleBetweenVectors(BA, BC);
+  const BA = { x: A.x - B.x, y: A.y - B.y, z: is3D ? (A.z || 0) - (B.z || 0) : 0 };
+
+  let BC;
+  if (is3D) {
+    switch (C) {
+      case "OH": BC = { x: 0, y: 0, z: -1 }; break;
+      case "DV": BC = { x: 0, y: -1, z: 0 }; break;
+      case "RH": BC = { x: 1, y: 0, z: 0 }; break;
+      case "IH": BC = { x: 0, y: 0, z: 1 }; break;
+      case "UV": BC = { x: 0, y: 1, z: 0 }; break;
+      case "LH": BC = { x: -1, y: 0, z: 0 }; break;
+      default: throw new Error(`Unknown axis: ${C}`);
+    }
+
+    // 3D calculation
+    const angle = calculateAngleBetweenVectors(BA, BC);
+    const cross = crossProduct(BA, BC);
+    const dot = dotProduct(cross, { x: 0, y: 1, z: 0 }); // Assuming Y is up
+    return dot < 0 ? -angle : angle;
+  } else {
+    // Vector from B to C
+    BC = { x: C.x - B.x, y: C.y - B.y, z: is3D ? (C.z || 0) - (B.z || 0) : 0 };
+    // 2D calculation
+    return calculateAngle2D(BA, BC);
   }
-  
-  return calculateAngleBetweenVectors(BA, axisVector);
+}
+
+function calculateAngle2D(v1, v2) {
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const det = v1.x * v2.y - v1.y * v2.x;
+  const angle = Math.atan2(det, dot) * (180 / Math.PI);
+  return Math.abs(angle); // Always return positive angle for 2D
 }
 
 function calculateAngleBetweenVectors(v1, v2) {
   // Calculate dot product
   const dotProduct = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-  
+
   // Calculate magnitudes
-  const magnitudeV1 = Math.sqrt(v1.x*v1.x + v1.y*v1.y + v1.z*v1.z);
-  const magnitudeV2 = Math.sqrt(v2.x*v2.x + v2.y*v2.y + v2.z*v2.z);
-  
+  const magnitudeV1 = Math.sqrt(v1.x * v1.x + v1.y * v1.y + v1.z * v1.z);
+  const magnitudeV2 = Math.sqrt(v2.x * v2.x + v2.y * v2.y + v2.z * v2.z);
+
   // Calculate angle
   const angle = Math.acos(dotProduct / (magnitudeV1 * magnitudeV2));
   return angle * (180 / Math.PI);
 }
 
-function distance(p1, p2) {
-  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+function crossProduct(v1, v2) {
+  return {
+    x: v1.y * v2.z - v1.z * v2.y,
+    y: v1.z * v2.x - v1.x * v2.z,
+    z: v1.x * v2.y - v1.y * v2.x
+  };
+}
+
+function dotProduct(v1, v2) {
+  return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
 function displayAngles(context, angles) {
@@ -297,6 +331,10 @@ function displayAngles(context, angles) {
   context.lineWidth = 3;
 
   let y = 30;
+  const text = `Group: ${window.groupNameSelected}`;
+  context.strokeText(text, 10, y);
+  context.fillText(text, 10, y);
+  y += 20;
   for (const [name, angle] of Object.entries(angles)) {
     const text = `${name}: ${angle.toFixed(1)}°`;
     context.strokeText(text, 10, y);

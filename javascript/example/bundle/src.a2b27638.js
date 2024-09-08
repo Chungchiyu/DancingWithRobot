@@ -52412,7 +52412,7 @@ window.newCard = function () {
         angle = _ref2[1];
       return "<div>".concat(angle.toFixed(1), "</div>");
     }).join('');
-  }), "\n        </div>\n        <div class=\"icon\">\n            <img src=\"").concat(img, "\" alt=\"Icon\">\n        </div>\n        <div class=\"duration\">\n            <div class=\"number\">1</div>\n            <input value=\"").concat(window.jointsData[0].time, "\"></input>\n            <button class=\"duration-btn\">s</button>\n        </div>\n        <button class=\"close\">X</button>\n    ");
+  }), "\n        </div>\n        <div class=\"icon\">\n            <img src=\"").concat(img, "\" alt=\"Icon\">\n        </div>\n        <div class=\"duration\">\n            <div class=\"number\">1</div>\n            <div id=\"group-card\">").concat(window.groupNameSelected, "</div>\n            <input value=\"").concat(Math.round(window.jointsData[0].time * 100) / 100, "\"></input>\n            <button class=\"duration-btn\">s</button>\n        </div>\n        <button class=\"close\">X</button>\n    ");
   card.querySelector('.close').addEventListener('click', function (event) {
     event.stopPropagation();
     cardContainer.removeChild(card);
@@ -52467,7 +52467,8 @@ window.newCard = function () {
     ghostClass: 'highlighted',
     // The class applied to the hovered swap item
     animation: 150,
-    filter: 'input'
+    filter: 'input',
+    preventOnFilter: false
   });
   updateJointsSet();
 };
@@ -52600,10 +52601,11 @@ addBtn.addEventListener('click', function () {
     for (var i = 0; i < 6; i++) viewer.setJointValue("joint_".concat(i + 1), card.querySelector('.angles').innerText.split('\n')[i] * DEG2RAD);
   });
   cardContainer.appendChild(card);
-  new _sortablejs.default(cardContainer, {
+  var sortable = new _sortablejs.default(cardContainer, {
     ghostClass: 'highlighted',
-    // The class applied to the hovered swap item
-    animation: 150
+    animation: 150,
+    filter: 'input',
+    preventOnFilter: false
   });
   updateJointsSet();
 });

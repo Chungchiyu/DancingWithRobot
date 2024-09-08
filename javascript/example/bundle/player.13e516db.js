@@ -328,7 +328,7 @@ function drawPoses(poses) {
         }
       });
     });
-    var angles = calculateAllAngles(pose.keypoints3D);
+    var angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
     displayAngles(ctx, angles);
     var remapAngles = angleMapping(angles);
     lastPoseAngles = remapAngles;
@@ -353,23 +353,31 @@ function drawPoses(poses) {
   //   });
   // }
 }
+var angleOut = [];
 function angleMapping(angles) {
-  var out = [];
-  out.A1 = angles.A1 > 90 ? 90 : angles.A1;
-  out.A1 = angles.A1 < -90 ? -90 : angles.A1;
-  out.A1 = map(out.A1, 90, -90, -110, 110);
-  out.A2 = angles.A2 > 180 ? 180 : angles.A2;
-  out.A2 = angles.A2 < -180 ? -180 : angles.A2;
-  out.A2 = map(angles.A2, 60, 0, -50, 0);
-  out.A3 = angles.A3 > 180 ? 180 : angles.A3;
-  out.A3 = angles.A3 < -180 ? -180 : angles.A3;
-  out.A3 = map(angles.A3, 0, 180, -80, 90);
-  out.A4 = 0;
-  out.A5 = angles.A5 > 180 ? 180 : angles.A5;
-  out.A5 = angles.A5 < -180 ? -180 : angles.A5;
-  out.A5 = map(angles.A5, 180, 90, 0, -90);
-  out.A6 = 0;
-  return out;
+  if (angles.J1 !== 'undefined' && angles.J1 !== 'nan') {
+    angleOut.J1 = angles.J1 > 90 ? 90 : angles.J1;
+    angleOut.J1 = angles.J1 < -90 ? -90 : angles.J1;
+    angleOut.J1 = map(angleOut.J1, 90, -90, -110, 110);
+  }
+  if (angles.J2 !== 'undefined' && angles.J2 !== 'nan') {
+    angleOut.J2 = angles.J2 > 180 ? 180 : angles.J2;
+    angleOut.J2 = angles.J2 < -180 ? -180 : angles.J2;
+    angleOut.J2 = map(angles.J2, 60, 0, -50, 0);
+  }
+  if (angles.J3 !== 'undefined' && angles.J3 !== 'nan') {
+    angleOut.J3 = angles.J3 > 180 ? 180 : angles.J3;
+    angleOut.J3 = angles.J3 < -180 ? -180 : angles.J3;
+    angleOut.J3 = map(angles.J3, 0, 180, -80, 90);
+  }
+  angleOut.J4 = 0;
+  if (angles.J5 !== 'undefined' && angles.J5 !== 'nan') {
+    angleOut.J5 = angles.J5 > 180 ? 180 : angles.J5;
+    angleOut.J5 = angles.J5 < -180 ? -180 : angles.J5;
+    angleOut.J5 = map(angles.J5, 180, 90, 0, -90);
+  }
+  angleOut.J6 = 0;
+  return angleOut;
 }
 function map(input, in_min, in_max, out_min, out_max) {
   return (input - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -406,7 +414,7 @@ function calculateAllAngles(keypoints3D) {
         b = _points$map2[1],
         c = _points$map2[2];
       if (a.score > 0.2 && b.score > 0.2 || typeof c === 'string') {
-        angles[key] = calculateAngle3D(a, b, c);
+        angles[key] = calculateAngle(a, b, c);
       } else {
         console.warn("Low confidence for angle ".concat(key, ", skipping calculation"));
       }
@@ -416,67 +424,90 @@ function calculateAllAngles(keypoints3D) {
   });
   return angles;
 }
-function calculateAngle3D(A, B, C) {
+function calculateAngle(A, B, C) {
+  // Check if we're dealing with 2D or 3D calculation
+  var is3D = typeof C === 'string';
+
   // Vector from B to A
   var BA = {
     x: A.x - B.x,
     y: A.y - B.y,
-    z: A.z - B.z
+    z: is3D ? (A.z || 0) - (B.z || 0) : 0
   };
-  var axisVector;
-  switch (C) {
-    case "OH":
-      axisVector = {
-        x: 0,
-        y: 0,
-        z: -1
-      };
-      break;
-    case "DV":
-      axisVector = {
-        x: 0,
-        y: -1,
-        z: 0
-      };
-      break;
-    case "RH":
-      axisVector = {
-        x: 1,
-        y: 0,
-        z: 0
-      };
-      break;
-    case "IH":
-      axisVector = {
-        x: 0,
-        y: 0,
-        z: 1
-      };
-      break;
-    case "UV":
-      axisVector = {
-        x: 0,
-        y: 1,
-        z: 0
-      };
-      break;
-    case "LH":
-      axisVector = {
-        x: -1,
-        y: 0,
-        z: 0
-      };
-      break;
-    default:
-      // If C is not one of the special cases, calculate as before
-      var BC = {
-        x: C.x - B.x,
-        y: C.y - B.y,
-        z: C.z - B.z
-      };
-      return calculateAngleBetweenVectors(BA, BC);
+  var BC;
+  if (is3D) {
+    switch (C) {
+      case "OH":
+        BC = {
+          x: 0,
+          y: 0,
+          z: -1
+        };
+        break;
+      case "DV":
+        BC = {
+          x: 0,
+          y: -1,
+          z: 0
+        };
+        break;
+      case "RH":
+        BC = {
+          x: 1,
+          y: 0,
+          z: 0
+        };
+        break;
+      case "IH":
+        BC = {
+          x: 0,
+          y: 0,
+          z: 1
+        };
+        break;
+      case "UV":
+        BC = {
+          x: 0,
+          y: 1,
+          z: 0
+        };
+        break;
+      case "LH":
+        BC = {
+          x: -1,
+          y: 0,
+          z: 0
+        };
+        break;
+      default:
+        throw new Error("Unknown axis: ".concat(C));
+    }
+
+    // 3D calculation
+    var angle = calculateAngleBetweenVectors(BA, BC);
+    var cross = crossProduct(BA, BC);
+    var dot = dotProduct(cross, {
+      x: 0,
+      y: 1,
+      z: 0
+    }); // Assuming Y is up
+    return dot < 0 ? -angle : angle;
+  } else {
+    // Vector from B to C
+    BC = {
+      x: C.x - B.x,
+      y: C.y - B.y,
+      z: is3D ? (C.z || 0) - (B.z || 0) : 0
+    };
+    // 2D calculation
+    return calculateAngle2D(BA, BC);
   }
-  return calculateAngleBetweenVectors(BA, axisVector);
+}
+function calculateAngle2D(v1, v2) {
+  var dot = v1.x * v2.x + v1.y * v2.y;
+  var det = v1.x * v2.y - v1.y * v2.x;
+  var angle = Math.atan2(det, dot) * (180 / Math.PI);
+  return Math.abs(angle); // Always return positive angle for 2D
 }
 function calculateAngleBetweenVectors(v1, v2) {
   // Calculate dot product
@@ -490,8 +521,15 @@ function calculateAngleBetweenVectors(v1, v2) {
   var angle = Math.acos(dotProduct / (magnitudeV1 * magnitudeV2));
   return angle * (180 / Math.PI);
 }
-function distance(p1, p2) {
-  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+function crossProduct(v1, v2) {
+  return {
+    x: v1.y * v2.z - v1.z * v2.y,
+    y: v1.z * v2.x - v1.x * v2.z,
+    z: v1.x * v2.y - v1.y * v2.x
+  };
+}
+function dotProduct(v1, v2) {
+  return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 function displayAngles(context, angles) {
   context.font = '14px Arial';
@@ -499,13 +537,17 @@ function displayAngles(context, angles) {
   context.strokeStyle = 'black';
   context.lineWidth = 3;
   var y = 30;
+  var text = "Group: ".concat(window.groupNameSelected);
+  context.strokeText(text, 10, y);
+  context.fillText(text, 10, y);
+  y += 20;
   for (var _i = 0, _Object$entries = Object.entries(angles); _i < _Object$entries.length; _i++) {
     var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
       name = _Object$entries$_i[0],
       angle = _Object$entries$_i[1];
-    var text = "".concat(name, ": ").concat(angle.toFixed(1), "\xB0");
-    context.strokeText(text, 10, y);
-    context.fillText(text, 10, y);
+    var _text = "".concat(name, ": ").concat(angle.toFixed(1), "\xB0");
+    context.strokeText(_text, 10, y);
+    context.fillText(_text, 10, y);
     y += 20;
   }
 }
