@@ -24,7 +24,10 @@ let videoAspectRatio = 16 / 9;
 let lowResCanvas;
 let lowResolution = 720;
 
-document.addEventListener('DOMContentLoaded', LoadMediaPipe);
+document.addEventListener('DOMContentLoaded', () => {
+  LoadMediaPipe();
+  periodicPoseEstimation();
+});
 
 let model;
 let detector;
@@ -61,6 +64,7 @@ async function LoadMediaPipe() {
 }
 
 video.addEventListener('loadedmetadata', () => {
+  totalTimeEl.textContent = formatTime(video.duration);
   videoAspectRatio = video.videoWidth / video.videoHeight;
   resizeCanvas();
   createLowResCanvas();
@@ -76,11 +80,12 @@ closeButton.addEventListener('click', closeVideo);
 
 poseDetectToggle.addEventListener('click', () => {
   poseDetectToggle.classList.toggle('checked');
-  estimatePoses();
-  if (poseDetectToggle.classList.contains('checked'))
+  if (poseDetectToggle.classList.contains('checked')) {
     canvas.style.display = '';
-  else
+    estimatePoses();
+  } else {
     canvas.style.display = 'none';
+  }
 });
 
 linkRobot.addEventListener('click', () => {
@@ -179,6 +184,8 @@ function drawPoses(poses) {
       });
     }
   }
+
+  console.log('estimation');
 
   // if (poses.length > 0) {
   //   const pose = poses[0];
@@ -363,6 +370,7 @@ async function loadVideo(event) {
     resizeCanvas();
     createLowResCanvas();
     estimatePoses();
+    window.updateMarkers();
   }
 }
 
@@ -375,11 +383,10 @@ function togglePlayPause() {
   if (video.paused) {
     video.play();
     playPauseAnimation.className = 'play-pause-animation play';
-    if (poseDetectToggle.classList.contains('checked'))
-      requestAnimationFrame(estimatePoses);
   } else {
     video.pause();
     playPauseAnimation.className = 'play-pause-animation pause';
+    estimatePoses();
   }
 
   playPauseAnimation.style.display = 'block';
@@ -401,14 +408,27 @@ recordDataButton.addEventListener('click', recordData);
 
 function recordData() {
   const currentTime = video.currentTime;
+  const newData = { time: currentTime, group: window.groupNameSelected, angles: { ...lastPoseAngles } };
 
-  jointsData = [{ time: currentTime, angles: lastPoseAngles }];
+  let inserted = false;
+  let i = 0;
+  for (; i < window.jointsData.length; i++) {
+    if (currentTime < window.jointsData[i].time) {
+      window.jointsData.splice(i, 0, newData);
+      inserted = true;
+      break;
+    }
+  }
+
+  if (!inserted) {
+    window.jointsData.push(newData);
+  }
+
   addMarkerToProgressBar(currentTime);
-
-  window.newCard();
+  window.addFrameCard(i);
 }
 
-function addMarkerToProgressBar(time) {
+window.addMarkerToProgressBar = (time) => {
   const progress = (time / video.duration) * 99 + 1;
   const marker = document.createElement('div');
   marker.className = 'progress-marker';
@@ -455,6 +475,7 @@ function updateProgressWithEvent(e) {
   const width = rect.width;
   const newTime = (x / width) * video.duration;
   video.currentTime = newTime;
+  estimatePoses();
 }
 
 async function generateThumbnails() {
@@ -558,20 +579,33 @@ window.addEventListener('resize', () => {
 //   }
 // }
 
-async function estimatePoses() {
-  if (poseDetectToggle.classList.contains('checked')) {
-    console.log('estimation');
-    if (video.readyState >= 2 && poseNetLoaded) {
-      const lowResContext = lowResCanvas.getContext('2d');
-      lowResContext.drawImage(video, 0, 0, lowResCanvas.width, lowResCanvas.height);
+let lastProcessedTime = 0;
+const processingInterval = 10;
 
+let estimationCount = 0;
+const maxEstimations = 5;
+
+const updatePose = document.getElementById('update-pose');
+updatePose.addEventListener('click', () => {
+  estimatePoses();
+});
+
+async function estimatePoses(refresh) {
+  if (poseDetectToggle.classList.contains('checked') && video.readyState >= 2 && poseNetLoaded || refresh) {
+    const currentTime = video.currentTime;
+    if (currentTime !== lastProcessedTime || refresh) {
+      lastProcessedTime = currentTime;
       const poses = await detectPose(detector, video);
       drawPoses(poses);
     }
-    if (!video.paused) {
-      requestAnimationFrame(estimatePoses);
-    }
   }
+}
+
+function periodicPoseEstimation() {
+  if (poseDetectToggle.classList.contains('checked') && !video.paused) {
+    estimatePoses();
+  }
+  setTimeout(periodicPoseEstimation, processingInterval);
 }
 
 poseButton.addEventListener('click', () => {
@@ -591,3 +625,21 @@ document.querySelector('.overlay').addEventListener('click', () => {
     document.querySelector('.modal').style.zIndex = '-1';
   }, 500);
 });
+
+// Video Controls with Time Display
+const currentTimeEl = document.getElementById('current-time');
+const totalTimeEl = document.getElementById('total-time');
+
+video.addEventListener('timeupdate', () => {
+  currentTimeEl.textContent = formatTime(video.currentTime);
+  updateProgress();
+  if (video.paused) {
+    estimatePoses();
+  }
+});
+
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}

@@ -13,9 +13,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <link href="./styles.css" type="text/css" rel="stylesheet" />
     <link href="./player-style.css" type="text/css" rel="stylesheet" />
     <link href="./human.css" type="text/css" rel="stylesheet" />
+    <link href="./editor.css" type="text/css" rel="stylesheet" />
     <script src="./src/redirect.js"></script>
 </head>
 
@@ -31,12 +33,16 @@
                 <canvas id="canvas"></canvas>
                 <div id="play-pause-animation" class="play-pause-animation"></div>
                 <div class="controls">
+                    <div class="time-container">
+                        <span id="current-time">0:00</span> / <span id="total-time">0:00</span>
+                    </div>
                     <div class="progress-container" id="progress-container">
                         <div class="progress-filled" id="progress-filled"></div>
                         <div class="progress-thumb" id="progress-thumb"></div>
                     </div>
                     <div class="control-buttons">
                         <button id="record-data">Record</button>
+                        <button id="update-pose">Update</button>
                         <button id="restart">Restart</button>
                     </div>
                 </div>
@@ -51,27 +57,27 @@
                     <div class="left-panel">
                         <div id="angleProjections" class="frame">
                             <h2>Angle Projections</h2>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J1</div>
-                                <div class="angleCard-content">12,11,OH</div>
+                                <div class="angleCard-content">12,11,LH</div>
                             </div>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J2</div>
-                                <div class="angleCard-content">12,24,UV</div>
+                                <div class="angleCard-content">12,24,DV</div>
                             </div>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J3</div>
                                 <div class="angleCard-content">24,12,14</div>
                             </div>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J4</div>
                                 <div class="angleCard-content">12,14,16</div>
                             </div>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J5</div>
                                 <div class="angleCard-content">14,16,20</div>
                             </div>
-                            <div class="angleCard">
+                            <div class="angleCard AC">
                                 <div class="angleCard-label">J6</div>
                                 <div class="angleCard-content">22,16,20</div>
                             </div>
@@ -110,6 +116,13 @@
                 </ul>
 
                 <div id="controls">
+                    <div class="storage-toggle">
+                        <label for="enable-storage">Local Save</label>
+                        <input type="checkbox" id="enable-storage">
+                    </div>
+                    <button id="jsonEXBtn">Export</button>
+                    <input type="file" id="fileInput" accept=".json">
+                    <div id="output"></div>
                     <div id="toggle-controls"></div>
                     <div id="is-loop" class="toggle">Loop Animation</div>
                     <div id="poseDetect" class="toggle checked">Pose Detection</div>
@@ -137,13 +150,30 @@
                     </div>
                 </div>
             </div>
+            <button id="showEditor" class="download-button"><i class='fa fa-code'></i></button>
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-header" id="editorHeader">
+                    <span>Code Editor</span>
+                    <button id="code-download" class="download-button"><i class="fa fa-download"></i></button>
+                </div>
+                <div class="editor-content">
+                    <div class="line-numbers"></div>
+                    <textarea id="editor" spellcheck="false"></textarea>
+                </div>
+                <div class="resize-handle top"></div>
+                <div class="resize-handle right"></div>
+                <div class="resize-handle corner"></div>
+            </div>
             <div id="poseCard-container"></div>
         </div>
     </div>
 
     <script src="./src/human.js"></script>
-    <script src="./src/index.js"></script>
     <script src="./src/player.js"></script>
+    <script src="./src/index.js"></script>
+    <script src="./src/editor.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
 </body>
 
 </html>

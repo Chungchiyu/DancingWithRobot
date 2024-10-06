@@ -351,6 +351,7 @@ let angleData = Array(6).fill(null);
 function saveAngle() {
     if (selectedPoints.length == 0) {
         updateButtonLabel(selectedButton, 'none');
+        groups[selectedGroup].data[`J${selectedButton + 1}`] = 'none';
         return;
     } else if (selectedPoints.length !== 3) {
         alert('Please select three points or coordinate positions to save an angle.');
@@ -482,15 +483,21 @@ let selectedGroup = null;
 window.groupNameSelected = 'default';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initGroups();
+});
+
+const initGroups = () => {
     const defaultGroup = { name: 'default', data: {} };
-    const angleCards = document.querySelectorAll('.angleCard');
+    const angleCards = document.querySelectorAll('.angleCard.AC');
     angleCards.forEach((card, index) => {
         const content = card.querySelector('.angleCard-content').textContent.trim();
         defaultGroup.data[`J${index + 1}`] = content;
+        console.log(content);
     });
     groups.push(defaultGroup);
+    console.log(defaultGroup);
     updateGroups();
-});
+}
 
 function addGroup() {
     let name = document.getElementById('newGroupName').value.trim();
@@ -506,96 +513,138 @@ function addGroup() {
     }
 
     groups.push({ name, data: groupData });
+    console.log(groups);
     updateGroups();
     document.getElementById('newGroupName').value = '';
     // Clear angleData when a group is added
     angleData = Array(6).fill(null);
 }
 
-function updateGroups() {
+window.updateGroups = function () {
     const groupsContainer = document.getElementById('groups-container');
-    groupsContainer.innerHTML = ''; // Clear existing groups
+    groupsContainer.innerHTML = '';
     groups.forEach((group, index) => {
         const card = document.createElement('div');
         card.className = 'angleCard group-card';
         card.innerHTML = `
-            <div class="angleCard-label">G${index + 1}</div>
-            <div class="angleCard-content">${group.name}</div>
-            ${index !== 0 ? '<span class="delete-group">X</span>' : ''}
-        `;
+        <div class="angleCard-label">G${index + 1}</div>
+        <div class="angleCard-content">${group.name}</div>
+        ${index !== 0 ? '<span class="delete-group">X</span>' : ''}
+      `;
         card.addEventListener('click', (e) => {
             if (!e.target.classList.contains('delete-group')) {
                 selectGroup(index);
             }
         });
-        
+
         if (index !== 0) {
             const deleteBtn = card.querySelector('.delete-group');
+            let clickTimer = null;
+            let clickCount = 0;
+
             deleteBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                deleteGroup(index);
+                clickCount++;
+
+                if (clickCount === 1) {
+                    clickTimer = setTimeout(() => {
+                        if (clickCount === 1) {
+                            // Single click
+                            if (confirm(`確定要刪除群組 "${group.name}" 嗎？`)) {
+                                deleteGroup(index);
+                            }
+                        }
+                        clickCount = 0;
+                    }, 300); // Adjust this delay as needed
+                } else if (clickCount === 2) {
+                    // Double click
+                    clearTimeout(clickTimer);
+                    deleteGroup(index);
+                    clickCount = 0;
+                }
             });
         }
-        
+
+        enableGroupNameEdit(card, index);
         groupsContainer.appendChild(card);
     });
+
+    if (groups.length === 1) {
+        selectGroup(0);
+    } else {
+        selectGroup(selectedGroup);
+    }
 }
 
 function deleteGroup(index) {
     if (index === 0) {
-        alert("The default group cannot be deleted.");
+        alert("無法刪除預設群組。");
         return;
     }
 
-    if (confirm(`Are you sure you want to delete group "${groups[index].name}"?`)) {
-        groups.splice(index, 1);
-        if (selectedGroup === index) {
-            selectedGroup = null;
-            // Load data from angleData
-            for (let i = 1; i <= 6; i++) {
-                const card = document.querySelector(`.angleCard:nth-of-type(${i})`);
-                const content = angleData[i - 1] ? angleData[i - 1].map(p => typeof p === 'object' ? p.id : p).join(',') : 'none';
-                card.querySelector('.angleCard-content').textContent = content;
-            }
-        } else if (selectedGroup > index) {
-            selectedGroup--;
+    groups.splice(index, 1);
+    if (selectedGroup === index) {
+        selectedGroup--;
+    }
+    updateGroups();
+}
+
+window.selectGroup = (index) => {
+
+    // Deselect previously selected group
+    if (selectedGroup !== null) {
+        const prevGroupCard = document.querySelector(`#groups-container .angleCard:nth-child(${selectedGroup + 1})`);
+        prevGroupCard.classList.remove('selected');
+    }
+    selectedGroup = index;
+    const group = groups[index];
+    const groupCard = document.querySelector(`#groups-container .angleCard:nth-child(${index + 1})`);
+    groupCard.classList.add('selected');
+    groupNameSelected = group.name;
+
+    if (group && group.data) {
+        // Update J1~J6 angleCards with the group data
+        for (let i = 1; i <= 6; i++) {
+            const card = document.querySelector(`.angleCard:nth-of-type(${i})`);
+            const content = group.data[`J${i}`] || 'none';
+            card.querySelector('.angleCard-content').textContent = content;
         }
-        updateGroups();
     }
 }
 
-function selectGroup(index) {
-    if (selectedGroup === index) {
-        // If the same group is clicked again, deselect it
-        const groupCard = document.querySelector(`#groups-container .angleCard:nth-child(${index + 1})`);
-        groupCard.classList.remove('selected');
-        selectedGroup = null;
-        // Load data from angleData
-        for (let i = 1; i <= 6; i++) {
-            const card = document.querySelector(`.angleCard:nth-of-type(${i})`);
-            const content = angleData[i - 1] ? angleData[i - 1].map(p => typeof p === 'object' ? p.id : p).join(',') : 'none';
-            card.querySelector('.angleCard-content').textContent = content;
-        }
-    } else {
-        // Deselect previously selected group
-        if (selectedGroup !== null) {
-            const prevGroupCard = document.querySelector(`#groups-container .angleCard:nth-child(${selectedGroup + 1})`);
-            prevGroupCard.classList.remove('selected');
-        }
+function enableGroupNameEdit(card, groupIndex) {
+    const contentDiv = card.querySelector('.angleCard-content');
 
-        selectedGroup = index;
-        const group = groups[index];
-        const groupCard = document.querySelector(`#groups-container .angleCard:nth-child(${index + 1})`);
-        groupCard.classList.add('selected');
-        groupNameSelected = group.name;
+    card.addEventListener('dblclick', (e) => {
+        if (e.target === contentDiv) {
+            const currentName = contentDiv.textContent;
+            const input = document.createElement('input');
+            input.value = currentName;
+            input.className = 'edit-group-name';
+            input.style.width = '100%';
+            input.style.boxSizing = 'border-box';
+            input.style.padding = '8px 8px 8px 0';
+            input.style.border = 'none';
+            input.style.backgroundColor = 'transparent';
+            input.style.font = 'inherit';
 
-        if (group && group.data) {
-            // Update J1~J6 angleCards with the group data
-            for (let i = 1; i <= 6; i++) {
-                const card = document.querySelector(`.angleCard:nth-of-type(${i})`);
-                const content = group.data[`J${i}`] || 'none';
-                card.querySelector('.angleCard-content').textContent = content;
+            contentDiv.textContent = '';
+            contentDiv.appendChild(input);
+            input.focus();
+
+            input.addEventListener('blur', finishEdit);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    finishEdit();
+                }
+            });
+
+            function finishEdit() {
+                const newName = input.value.trim() || 'default';
+                groups[groupIndex].name = newName;
+                contentDiv.textContent = newName;
+                updateGroups();
             }
         }
-    }
+    });
 }
