@@ -336,7 +336,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
-  display: none; /* Initially hidden */
+  display: none;
 }
 .pose-button:hover {
   background-color: gray;
@@ -375,7 +375,7 @@ video {
 }
 .overlay {
   display: none;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;

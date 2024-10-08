@@ -312,7 +312,7 @@ document.addEventListener('WebComponentsReady', () => {
 
 // Update card content function
 function updateCardContent(card, data, index) {
-    console.log(data);
+    // console.log(data);
     card.querySelector('.angles').innerHTML =
         Object.entries(data.angles)
             .map(([joint, angle]) => `<div>${angle == null ? 'NAN' : angle.toFixed(1)}</div>`)
@@ -350,7 +350,7 @@ function updateJointsData(index, updates) {
         console.error('Invalid index');
         return;
     }
-    console.log("index",index);
+    // console.log("index",index);
     let updatedData = { ...window.jointsData[index], ...updates };
 
     // Remove old data from the array
@@ -370,7 +370,7 @@ function updateJointsData(index, updates) {
     // updateAllCardContents();
     // Simulate continuous mouse drag
     reorderCardsWithAnimation(index, insertIndex);
-    console.log(index, insertIndex)
+    // console.log(index, insertIndex)
     updateMarkers();
     saveLocalData();
 }
@@ -447,7 +447,7 @@ const addFrameCard = (index) => {
         elements.progressContainer.removeChild(marker[parseInt(card.querySelector('.number').textContent) - 1]);
 
         updateCardNumbers();
-        console.log(window.jointsData);
+        // console.log(window.jointsData);
     });
 
     card.querySelector('input').addEventListener('keydown', (event) => {
@@ -563,7 +563,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const item = window.jointsData.splice(oldIndex, 1)[0];
             window.jointsData.splice(newIndex, 0, item);
 
-            console.log(window.jointsData);
+            // console.log(window.jointsData);
         }
     });
 });

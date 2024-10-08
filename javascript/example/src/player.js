@@ -175,7 +175,7 @@ function drawPoses(poses) {
     const angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
     displayAngles(ctx, angles);
 
-    const remapAngles = angleMapping(angles);
+    const remapAngles = angleMapping(angles, window.groups[window.selectedGroup].data);
     lastPoseAngles = remapAngles;
 
     if (linkRobot.classList.contains('checked')) {
@@ -202,37 +202,29 @@ function drawPoses(poses) {
   // }
 }
 
-let angleOut = [];
-function angleMapping(angles) {
+function angleMapping(angles, groupData) {
+  let angleOut = {};
 
-  if (angles.J1 !== 'undefined' && angles.J1 !== 'nan') {
-    angleOut.J1 = angles.J1 > 90 ? 90 : angles.J1;
-    angleOut.J1 = angles.J1 < -90 ? -90 : angles.J1;
-    angleOut.J1 = map(angleOut.J1, 90, -90, -110, 110);
+  for (let i = 1; i <= 6; i++) {
+      const joint = `J${i}`;
+      const angle = angles[joint];
+      // console.log(groupData[joint])
+      const mappingData = groupData[joint].mappingData;
+
+      if (angle !== undefined && !isNaN(angle)) {
+          // Clamp the angle to the range defined in mappingData
+          let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
+
+          // Map the angle using the values from mappingData
+          angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+          if (angleOut[joint] === undefined || isNaN(angleOut[joint])) 
+            angleOut[joint] = 0;
+      } else {
+          // If angle is undefined or NaN, use a default value or skip
+          angleOut[joint] = 0; // or any other default value
+      }
   }
-
-  if (angles.J2 !== 'undefined' && angles.J2 !== 'nan') {
-    angleOut.J2 = angles.J2 > 180 ? 180 : angles.J2;
-    angleOut.J2 = angles.J2 < -180 ? -180 : angles.J2;
-    angleOut.J2 = map(angles.J2, 60, 0, -50, 0);
-  }
-
-  if (angles.J3 !== 'undefined' && angles.J3 !== 'nan') {
-    angleOut.J3 = angles.J3 > 180 ? 180 : angles.J3;
-    angleOut.J3 = angles.J3 < -180 ? -180 : angles.J3;
-    angleOut.J3 = map(angles.J3, 0, 180, -80, 90);
-  }
-
-  angleOut.J4 = 0;
-
-  if (angles.J5 !== 'undefined' && angles.J5 !== 'nan') {
-    angleOut.J5 = angles.J5 > 180 ? 180 : angles.J5;
-    angleOut.J5 = angles.J5 < -180 ? -180 : angles.J5;
-    angleOut.J5 = map(angles.J5, 180, 90, 0, -90);
-  }
-
-  angleOut.J6 = 0;
-
+  // console.log(angleOut);
   return angleOut;
 }
 
@@ -248,7 +240,7 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
     return angles;
   }
   Object.entries(group.data).forEach(([key, value]) => {
-    const points = value.split(',').map(id => id.trim());
+    const points = value.angles.split(',').map(id => id.trim());
 
     if (points.length === 3) {
       const [a, b, c] = points.map(i => {

@@ -93,6 +93,26 @@
                         <div id="figure">
                             <svg id="svgLayer"></svg>
                         </div>
+                        <div id="angleMappingControls">
+                            <div class="mapping-group">
+                                <!-- <h6>姿態角度範圍</h6> -->
+                                <div class="slider-wrapper">
+                                    <img src="elbow.png" class="image">
+                                    <input type="number" class="range-input min" value="0">
+                                    <div id="postureSlider" class="slider-container"></div>
+                                    <input type="number" class="range-input max" value="360">
+                                </div>
+                            </div>
+                            <div class="mapping-group">
+                                <!-- <h6>手臂角度範圍</h6> -->
+                                <div class="slider-wrapper">
+                                    <img src="robotic-arm.png" class="image">
+                                    <input type="number" class="range-input min" value="0">
+                                    <div id="armSlider" class="slider-container"></div>
+                                    <input type="number" class="range-input max" value="360">
+                                </div>
+                            </div>
+                        </div>
                         <div id="newGroupContainer">
                             <input type="text" id="newGroupName" placeholder="New group name">
                             <button id="addGroupBtn">Add</button>

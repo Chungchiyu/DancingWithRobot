@@ -181,3 +181,87 @@
 .delete-group:hover {
     color: red;
 }
+
+
+
+#angleMappingControls {
+    width: 100%;
+    font-family: Arial, sans-serif;
+    padding: 2px;
+    user-select: none;
+}
+
+.mapping-group {
+    margin-top: 20px;
+    margin-bottom: 5px;
+}
+
+.slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slider-container {
+    position: relative;
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    flex-grow: 1;
+}
+
+.slider-range {
+    position: absolute;
+    height: 100%;
+    background-color: #2196F3;
+    border-radius: 2px;
+}
+
+.slider-handle {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background-color: white;
+    border: 2px solid #2196F3;
+    border-radius: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+}
+
+.slider-label {
+    position: absolute;
+    top: -22px;
+    transform: translateX(-30%);
+    background-color: #2196F3;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.range-input {
+    width: 30px;
+    text-align: center;
+    color:#000 !important;
+    border: 1px solid !important;
+    border-radius: 3px;
+    border-color: #000;
+    margin: 5px;
+    -moz-appearance: textfield;
+}
+
+.range-input::-webkit-outer-spin-button,
+.range-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Make the image to responsive */
+.image {
+    display: flex;
+    width: 25px;
+    height: auto;
+    margin-right: -8px;
+    border-radius: 0% !important;
+  }

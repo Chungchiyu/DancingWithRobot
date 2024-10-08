@@ -327,7 +327,12 @@ updateButton.textContent = 'Update';
 updateButton.style.position = 'absolute';
 updateButton.style.right = '10px';
 updateButton.style.bottom = '10px';
-updateButton.addEventListener('click', saveAngle);
+updateButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    saveAngle();
+    saveMappingData();
+    updateButton.textContent = 'saved';
+});
 figure.appendChild(updateButton);
 
 function loadAngleFromButtonContent(content) {
@@ -373,7 +378,7 @@ function saveAngle() {
 
     if (groups.length > 0 && selectedGroup !== null) {
         // If groups exist and one is selected, save to the selected group
-        groups[selectedGroup].data[`J${selectedButton + 1}`] = angleDataString;
+        groups[selectedGroup].data[`J${selectedButton + 1}`].angles = angleDataString;
     } else {
         // If no groups exist or no group is selected, save to angleData
         angleData[selectedButton] = newAngleData;
@@ -397,6 +402,7 @@ function updateButtonLabel(index, angleData) {
 }
 
 function selectAngleButton(index) {
+    updateButton.textContent = 'update';
     if (selectedButton !== null) {
         const prevButton = document.querySelector(`.angleCard:nth-of-type(${selectedButton + 1})`);
         prevButton.classList.remove('selected');
@@ -408,7 +414,7 @@ function selectAngleButton(index) {
     let currentAngleData;
     if (groups.length > 0 && selectedGroup !== null) {
         // If groups exist and one is selected, load from the selected group
-        currentAngleData = groups[selectedGroup].data[`J${index + 1}`];
+        currentAngleData = groups[selectedGroup].data[`J${index + 1}`].angles;
     } else {
         // If no groups exist or no group is selected, load from angleData
         currentAngleData = angleData[index];
@@ -432,6 +438,8 @@ function selectAngleButton(index) {
             clearFigure(); // Clear the figure if content is 'none'
         }
     }
+
+    updateMappingData(groups[selectedGroup].data[`J${index + 1}`].mappingData);
 }
 
 function loadAngle(angleData) {
@@ -479,23 +487,34 @@ function clearFigure() {
 document.getElementById('addGroupBtn').addEventListener('click', addGroup);
 
 window.groups = [];
-let selectedGroup = null;
+window.selectedGroup = null;
 window.groupNameSelected = 'default';
 
 document.addEventListener('DOMContentLoaded', () => {
     initGroups();
 });
 
+// Define default values for each axis
+const defaultAxisValues = {
+    J1: { PL: -90, PR: 90, AL: -110, AR: 110, PHL: -90, PHR: 90, AHL: -110, AHR: 110 },
+    J2: { PL: 0, PR: 60, AL: -50, AR: 0, PHL: 0, PHR: 60, AHL: -50, AHR: 0 },
+    J3: { PL: 0, PR: 180, AL: -80, AR: 90, PHL: 0, PHR: 180, AHL: -80, AHR: 90 },
+    J4: { PL: 0, PR: 0, AL: 0, AR: 0, PHL: 0, PHR: 0, AHL: 0, AHR: 0 }, // J4 is always 0
+    J5: { PL: 90, PR: 180, AL: -90, AR: 0, PHL: 90, PHR: 180, AHL: -90, AHR: 0 },
+    J6: { PL: 0, PR: 0, AL: 0, AR: 0, PHL: 0, PHR: 0, AHL: 0, AHR: 0 }  // J6 is always 0
+};
+
 const initGroups = () => {
     const defaultGroup = { name: 'default', data: {} };
     const angleCards = document.querySelectorAll('.angleCard.AC');
     angleCards.forEach((card, index) => {
         const content = card.querySelector('.angleCard-content').textContent.trim();
-        defaultGroup.data[`J${index + 1}`] = content;
-        console.log(content);
+        defaultGroup.data[`J${index + 1}`] = {
+            angles: content,
+            mappingData: { ...defaultAxisValues[`J${index + 1}`] }
+        };
     });
     groups.push(defaultGroup);
-    console.log(defaultGroup);
     updateGroups();
 }
 
@@ -505,19 +524,18 @@ function addGroup() {
         name = 'default';
     }
 
-    // Collect data from J1~J6
     const groupData = {};
     for (let i = 1; i <= 6; i++) {
         const cardContent = document.querySelector(`.angleCard:nth-of-type(${i}) .angleCard-content`).textContent;
-        groupData[`J${i}`] = cardContent;
+        groupData[`J${i}`] = {
+            angles: cardContent,
+            mappingData: { ...defaultAxisValues.posture, ...defaultAxisValues.arm }
+        };
     }
 
     groups.push({ name, data: groupData });
-    console.log(groups);
     updateGroups();
     document.getElementById('newGroupName').value = '';
-    // Clear angleData when a group is added
-    angleData = Array(6).fill(null);
 }
 
 window.updateGroups = function () {
@@ -590,8 +608,6 @@ function deleteGroup(index) {
 }
 
 window.selectGroup = (index) => {
-
-    // Deselect previously selected group
     if (selectedGroup !== null) {
         const prevGroupCard = document.querySelector(`#groups-container .angleCard:nth-child(${selectedGroup + 1})`);
         prevGroupCard.classList.remove('selected');
@@ -603,13 +619,55 @@ window.selectGroup = (index) => {
     groupNameSelected = group.name;
 
     if (group && group.data) {
-        // Update J1~J6 angleCards with the group data
         for (let i = 1; i <= 6; i++) {
             const card = document.querySelector(`.angleCard:nth-of-type(${i})`);
-            const content = group.data[`J${i}`] || 'none';
+            const content = group.data[`J${i}`].angles || 'none';
             card.querySelector('.angleCard-content').textContent = content;
         }
+        // Update mappingData for the selected joint (assuming we're working with J1)
+        updateMappingData(group.data.J1.mappingData);
     }
+    selectAngleButton(0);
+}
+
+window.updateMappingData = (data) => {
+    if (!data) return;
+
+    postureSlider.setBounds(data.PL, data.PR);
+    postureSlider.setValues([data.PHL, data.PHR]);
+
+    armSlider.setBounds(data.AL, data.AR);
+    armSlider.setValues([data.AHL, data.AHR]);
+}
+
+window.saveMappingData = () => {
+    if (selectedGroup === null || !groups[selectedGroup]) return;
+    
+    const currentJoint = `J${selectedButton + 1}`;
+    const currentData = groups[selectedGroup].data[currentJoint].mappingData;
+
+    currentData.PL = postureSlider.leftBound;
+    currentData.PR = postureSlider.rightBound;
+    currentData.AL = armSlider.leftBound;
+    currentData.AR = armSlider.rightBound;
+    currentData.PHL = postureSlider.output[0];
+    currentData.PHR = postureSlider.output[1];
+    currentData.AHL = armSlider.output[0];
+    currentData.AHR = armSlider.output[1];
+
+    console.log(`Mapping data saved for ${currentJoint} in group ${selectedGroup}`);
+}
+
+window.resetMappingData = () => {
+    if (selectedGroup === null || !groups[selectedGroup]) return;
+
+    const currentJoint = `J${selectedButton + 1}`;
+    const currentData = groups[selectedGroup].data[currentJoint].mappingData;
+
+    Object.assign(currentData, defaultAxisValues.posture, defaultAxisValues.arm);
+
+    updateSliders(currentData);
+    console.log(`Mapping data reset to default for ${currentJoint} in group ${selectedGroup}`);
 }
 
 function enableGroupNameEdit(card, groupIndex) {
@@ -648,3 +706,155 @@ function enableGroupNameEdit(card, groupIndex) {
         }
     });
 }
+
+class NumericRangeSlider {
+    constructor(container, options) {
+        this.container = document.getElementById(container);
+        this.leftInput = this.container.previousElementSibling;
+        this.rightInput = this.container.nextElementSibling;
+        this.leftBound = options.leftBound;
+        this.rightBound = options.rightBound;
+        this.values = options.values || [this.leftBound, this.rightBound];
+        this.step = options.step || 1;
+        this.onChange = options.onChange || (() => { });
+        this.dragging = null;
+        this.output = options.values || [this.leftBound, this.rightBound];
+
+        this.init();
+    }
+
+    init() {
+        this.range = document.createElement('div');
+        this.range.className = 'slider-range';
+        this.container.appendChild(this.range);
+
+        this.handles = this.values.map((value, index) => {
+            const handle = document.createElement('div');
+            handle.className = 'slider-handle';
+            handle.setAttribute('data-index', index);
+
+            const label = document.createElement('div');
+            label.className = 'slider-label';
+
+            handle.appendChild(label);
+            this.container.appendChild(handle);
+
+            handle.addEventListener('mousedown', this.startDragging.bind(this));
+            return handle;
+        });
+
+        this.leftInput.addEventListener('change', this.updateFromInput.bind(this));
+        this.rightInput.addEventListener('change', this.updateFromInput.bind(this));
+
+        this.updateHandles();
+    }
+
+    startDragging(e) {
+        e.preventDefault();
+        this.dragging = parseInt(e.target.getAttribute('data-index'));
+        document.addEventListener('mousemove', this.drag.bind(this));
+        document.addEventListener('mouseup', this.stopDragging.bind(this));
+    }
+
+    stopDragging() {
+        this.dragging = null;
+        document.removeEventListener('mousemove', this.drag.bind(this));
+        document.removeEventListener('mouseup', this.stopDragging.bind(this));
+    }
+
+    drag(e) {
+        if (this.dragging === null) return;
+
+        const rect = this.container.getBoundingClientRect();
+        let position = (e.clientX - rect.left) / rect.width;
+        position = Math.max(0, Math.min(1, position));
+
+        const value = this.leftBound + (this.rightBound - this.leftBound) * position;
+        const snappedValue = Math.round(value / this.step) * this.step;
+
+        if (this.leftBound <= this.rightBound)
+            this.values[this.dragging] = Math.max(this.leftBound, Math.min(this.rightBound, snappedValue));
+        else
+            this.values[this.dragging] = Math.max(this.rightBound, Math.min(this.leftBound, snappedValue));
+        this.updateHandles();
+        this.onChange(this.values);
+    }
+
+    updateFromInput() {
+        const leftOrigin = this.leftBound;
+        const rightOrigin = this.rightBound;
+        this.leftBound = parseFloat(this.leftInput.value);
+        this.rightBound = parseFloat(this.rightInput.value);
+        if ((rightOrigin - leftOrigin) * (this.rightBound - this.leftBound) < 0)
+            this.values = [this.leftBound, this.rightBound];
+        else {
+            let minor, major;
+            if (this.leftBound <= this.rightBound) {
+                minor = this.leftBound;
+                major = this.rightBound;
+            } else {
+                minor = this.rightBound;
+                major = this.leftBound
+            }
+            if (this.values[0] < minor)
+                this.values[0] = minor;
+            if (this.values[0] > major)
+                this.values[0] = major;
+            if (this.values[1] < minor)
+                this.values[1] = minor;
+            if (this.values[1] > major)
+                this.values[1] = major;
+        }
+        this.updateHandles();
+        this.onChange(this.values);
+    }
+
+    updateHandles() {
+        const leftPosition = (this.values[0] - this.leftBound) / (this.rightBound - this.leftBound);
+        const rightPosition = (this.values[1] - this.leftBound) / (this.rightBound - this.leftBound);
+
+        this.handles.forEach((handle, index) => {
+            const position = index === 0 ? leftPosition : rightPosition;
+            handle.style.left = `${position * 100}%`;
+            handle.querySelector('.slider-label').textContent = this.values[index];
+        });
+
+        this.range.style.left = `${Math.min(leftPosition, rightPosition) * 100}%`;
+        this.range.style.right = `${(1 - Math.max(leftPosition, rightPosition)) * 100}%`;
+        
+        if (this.values[0] > this.values[1] && this.leftBound <= this.rightBound ||
+            this.values[0] <= this.values[1] && this.leftBound > this.rightBound)
+            this.output = [this.values[1], this.values[0]];
+        else
+            this.output = this.values;
+        // console.log(this.output);
+    }
+
+    setBounds(left, right) {
+        this.leftBound = left;
+        this.rightBound = right;
+        this.leftInput.value = left;
+        this.rightInput.value = right;
+        this.updateHandles();
+    }
+
+    setValues(values) {
+        this.values = values.map(value => Math.max(Math.min(this.leftBound, this.rightBound), Math.min(Math.max(this.leftBound, this.rightBound), value)));
+        this.updateHandles();
+    }
+}
+
+// Initialize sliders
+const postureSlider = new NumericRangeSlider('postureSlider', {
+    leftBound: 0,
+    rightBound: 360,
+    values: [0, 360],
+    step: 1
+});
+
+const armSlider = new NumericRangeSlider('armSlider', {
+    leftBound: 0,
+    rightBound: 360,
+    values: [0, 360],
+    step: 1
+});
