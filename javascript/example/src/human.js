@@ -332,6 +332,7 @@ updateButton.addEventListener('click', (e) => {
     saveAngle();
     saveMappingData();
     updateButton.textContent = 'saved';
+    saveLocalData();
 });
 figure.appendChild(updateButton);
 
@@ -592,6 +593,8 @@ window.updateGroups = function () {
     } else {
         selectGroup(selectedGroup);
     }
+
+    saveLocalData();
 }
 
 function deleteGroup(index) {

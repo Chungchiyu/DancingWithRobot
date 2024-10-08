@@ -612,7 +612,7 @@ window.addFrameCard = addFrameCard;
 window.isLocalStorageEnabled = false;
 
 // Function to save jointsData to localStorage
-function saveLocalData() {
+window.saveLocalData = () => {
     if (!isLocalStorageEnabled) return;
 
     try {
