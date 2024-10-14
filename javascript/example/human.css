@@ -243,7 +243,7 @@
 .range-input {
     width: 30px;
     text-align: center;
-    color:#000 !important;
+    color: #000 !important;
     border: 1px solid !important;
     border-radius: 3px;
     border-color: #000;
@@ -264,4 +264,49 @@
     height: auto;
     margin-right: -8px;
     border-radius: 0% !important;
-  }
+}
+
+
+
+.button-23d-container {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    overflow: hidden;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+.button-23d-slider {
+    position: absolute;
+    width: 100%;
+    height: 40px;
+    background-color: #3b82f6;
+    transition: transform 0.3s ease;
+    z-index: 0;
+}
+
+.button-23d {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: transparent;
+    color: black;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.button-23d:first-child {
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.button-23d.active {
+    color: white;
+}

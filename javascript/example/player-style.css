@@ -405,3 +405,24 @@ video {
 .field:hover {
   background-color: #e0e0e0;
 }
+
+.cam-button {
+  position: absolute;
+  top: 10px;
+  right: 40px;
+  width: 30px;
+  height: 30px;
+  background-color: white; /* White button */
+  color: black;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px; /* Centered X */
+  font-weight: bold; /* Bold X */
+  display: none;
+}
+.cam-button:hover {
+  background-color: gray;
+}

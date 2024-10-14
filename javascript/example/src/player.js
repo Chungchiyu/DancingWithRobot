@@ -206,23 +206,23 @@ function angleMapping(angles, groupData) {
   let angleOut = {};
 
   for (let i = 1; i <= 6; i++) {
-      const joint = `J${i}`;
-      const angle = angles[joint];
-      // console.log(groupData[joint])
-      const mappingData = groupData[joint].mappingData;
+    const joint = `J${i}`;
+    const angle = angles[joint];
+    // console.log(groupData[joint])
+    const mappingData = groupData[joint].mappingData;
 
-      if (angle !== undefined && !isNaN(angle)) {
-          // Clamp the angle to the range defined in mappingData
-          let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
+    if (angle !== undefined && !isNaN(angle)) {
+      // Clamp the angle to the range defined in mappingData
+      let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
 
-          // Map the angle using the values from mappingData
-          angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
-          if (angleOut[joint] === undefined || isNaN(angleOut[joint])) 
-            angleOut[joint] = 0;
-      } else {
-          // If angle is undefined or NaN, use a default value or skip
-          angleOut[joint] = 0; // or any other default value
-      }
+      // Map the angle using the values from mappingData
+      angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+      if (angleOut[joint] === undefined || isNaN(angleOut[joint]))
+        angleOut[joint] = 0;
+    } else {
+      // If angle is undefined or NaN, use a default value or skip
+      angleOut[joint] = 0; // or any other default value
+    }
   }
   // console.log(angleOut);
   return angleOut;
@@ -242,52 +242,78 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
   Object.entries(group.data).forEach(([key, value]) => {
     const points = value.angles.split(',').map(id => id.trim());
 
-    if (points.length === 3) {
-      const [a, b, c] = points.map(i => {
-        if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
-        return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
-      });
-      if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
-        angles[key] = calculateAngle(a, b, c);
-      } else {
-        console.warn(`Low confidence for angle ${key}, skipping calculation`);
+    if (points.length === 3 || points.length === 4) {
+      if (points.length === 3) {
+        const [a, b, c] = points.map(i => {
+          if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
+          return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
+        });
+        if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
+          angles[key] = calculateAngle(a, b, c);
+        } else {
+          console.warn(`Low confidence for angle ${key}, skipping calculation`);
+        }
+      } else if (points.length === 4) {
+        // Handle 4-point case
+        const [a, b, c, d] = points.map(i => keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 });
+        if (a.score > 0.2 && b.score > 0.2 && c.score > 0.2 && d.score > 0.2) {
+          angles[key] = calculateAngle(a, b, c, d);
+        } else {
+          console.warn(`Low confidence for angle ${key}, skipping calculation`);
+        }
       }
     } else {
-      console.warn(`Invalid number of points for angle ${key}, expected 3 but got ${points.length}`);
+      console.warn(`Invalid number of points for angle ${key}, expected 3 or 4 but got ${points.length}`);
     }
   });
   return angles;
 }
 
-function calculateAngle(A, B, C) {
-  // Check if we're dealing with 2D or 3D calculation
-  const is3D = typeof C === 'string';
+function calculateAngle(A, B, C, D) {
+  if (D === undefined) {
+    // Check if we're dealing with 2D or 3D calculation
+    const is3D = typeof C === 'string';
 
-  // Vector from B to A
-  const BA = { x: A.x - B.x, y: A.y - B.y, z: is3D ? (A.z || 0) - (B.z || 0) : 0 };
+    // Vector from B to A
+    const BA = { x: A.x - B.x, y: A.y - B.y, z: is3D ? (A.z || 0) - (B.z || 0) : 0 };
 
-  let BC;
-  if (is3D) {
-    switch (C) {
-      case "OH": BC = { x: 0, y: 0, z: -1 }; break;
-      case "DV": BC = { x: 0, y: -1, z: 0 }; break;
-      case "RH": BC = { x: 1, y: 0, z: 0 }; break;
-      case "IH": BC = { x: 0, y: 0, z: 1 }; break;
-      case "UV": BC = { x: 0, y: 1, z: 0 }; break;
-      case "LH": BC = { x: -1, y: 0, z: 0 }; break;
-      default: throw new Error(`Unknown axis: ${C}`);
+    let BC;
+    if (is3D) {
+      switch (C) {
+        case "OH": BC = { x: 0, y: 0, z: -1 }; break;
+        case "DV": BC = { x: 0, y: -1, z: 0 }; break;
+        case "RH": BC = { x: 1, y: 0, z: 0 }; break;
+        case "IH": BC = { x: 0, y: 0, z: 1 }; break;
+        case "UV": BC = { x: 0, y: 1, z: 0 }; break;
+        case "LH": BC = { x: -1, y: 0, z: 0 }; break;
+        default: throw new Error(`Unknown axis: ${C}`);
+      }
+
+      // 3D calculation
+      const angle = calculateAngleBetweenVectors(BA, BC);
+      const cross = crossProduct(BA, BC);
+      const dot = dotProduct(cross, { x: 0, y: 1, z: 0 }); // Assuming Y is up
+      return dot < 0 ? -angle : angle;
+    } else {
+      // Vector from B to C
+      BC = { x: C.x - B.x, y: C.y - B.y, z: is3D ? (C.z || 0) - (B.z || 0) : 0 };
+      // 2D calculation
+      return calculateAngle2D(BA, BC);
     }
-
-    // 3D calculation
-    const angle = calculateAngleBetweenVectors(BA, BC);
-    const cross = crossProduct(BA, BC);
-    const dot = dotProduct(cross, { x: 0, y: 1, z: 0 }); // Assuming Y is up
-    return dot < 0 ? -angle : angle;
   } else {
-    // Vector from B to C
-    BC = { x: C.x - B.x, y: C.y - B.y, z: is3D ? (C.z || 0) - (B.z || 0) : 0 };
-    // 2D calculation
-    return calculateAngle2D(BA, BC);
+    // 4-point calculation
+    // Vector from A to B
+    const AB = { x: B.x - A.x, y: B.y - A.y, z: B.z - A.z };
+    // Vector from C to D
+    const CD = { x: D.x - C.x, y: D.y - C.y, z: D.z - C.z };
+
+    // Calculate angle between AB and CD vectors
+    const dotProduct = AB.x * CD.x + AB.y * CD.y + AB.z * CD.z;
+    const magnitudeAB = Math.sqrt(AB.x * AB.x + AB.y * AB.y + AB.z * AB.z);
+    const magnitudeCD = Math.sqrt(CD.x * CD.x + CD.y * CD.y + CD.z * CD.z);
+
+    const angle = Math.acos(dotProduct / (magnitudeAB * magnitudeCD));
+    return angle * (180 / Math.PI); // Convert to degrees
   }
 }
 

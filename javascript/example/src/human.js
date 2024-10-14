@@ -77,7 +77,7 @@ function selectNode(node, element) {
         selectedPoints.splice(index, 1);
         element.classList.remove('selected');
     } else {
-        if (selectedPoints.length >= 3) {
+        if (selectedPoints.length >= 4) {
             const removedNode = selectedPoints.shift();
             document.querySelector(`.node:nth-child(${removedNode.id + 1})`).classList.remove('selected');
         }
@@ -251,6 +251,28 @@ function updateAngle() {
         const exteriorAngle = 2 * Math.PI - interiorAngle;
         drawAngle(p1, p2, p3, interiorAngle, 'red', false);
         drawAngle(p1, p2, p3, exteriorAngle, 'blue', true);
+    } else if (selectedPoints.length === 4) {
+        const [p1, p2, p3, p4] = selectedPoints;
+
+        // Draw first line
+        const line1 = createSVGElement('line');
+        line1.setAttribute('x1', p1.x);
+        line1.setAttribute('y1', p1.y);
+        line1.setAttribute('x2', p2.x);
+        line1.setAttribute('y2', p2.y);
+        line1.setAttribute('stroke', 'blue');
+        line1.setAttribute('stroke-width', '6');
+        svg.appendChild(line1);
+
+        // Draw second line
+        const line2 = createSVGElement('line');
+        line2.setAttribute('x1', p3.x);
+        line2.setAttribute('y1', p3.y);
+        line2.setAttribute('x2', p4.x);
+        line2.setAttribute('y2', p4.y);
+        line2.setAttribute('stroke', 'green');
+        line2.setAttribute('stroke-width', '6');
+        svg.appendChild(line2);
     }
 }
 
@@ -359,8 +381,8 @@ function saveAngle() {
         updateButtonLabel(selectedButton, 'none');
         groups[selectedGroup].data[`J${selectedButton + 1}`] = 'none';
         return;
-    } else if (selectedPoints.length !== 3) {
-        alert('Please select three points or coordinate positions to save an angle.');
+    } else if (selectedPoints.length < 3) {
+        alert('Please select at least three points or coordinate positions to save an angle.');
         return;
     }
     if (selectedButton === null) {
@@ -375,7 +397,8 @@ function saveAngle() {
         return p.id;
     });
 
-    const angleDataString = newAngleData.map(p => typeof p === 'object' ? p.id : p).join(',');
+    let angleDataString;// = (button2D.classList.contains('active') ? '2D' : '3D') + ',';
+    angleDataString = newAngleData.map(p => typeof p === 'object' ? p.id : p).join(',');
 
     if (groups.length > 0 && selectedGroup !== null) {
         // If groups exist and one is selected, save to the selected group
@@ -452,6 +475,7 @@ function loadAngle(angleData) {
             return nodes.find(n => n.id === point);
         }
     });
+    console.log(selectedPoints);
     updateAngle();
     highlightSelectedNodes();
 }
@@ -530,7 +554,7 @@ function addGroup() {
         const cardContent = document.querySelector(`.angleCard:nth-of-type(${i}) .angleCard-content`).textContent;
         groupData[`J${i}`] = {
             angles: cardContent,
-            mappingData: { ...defaultAxisValues.posture, ...defaultAxisValues.arm }
+            mappingData: { ...defaultAxisValues[`J${i}`] }
         };
     }
 
@@ -645,7 +669,7 @@ window.updateMappingData = (data) => {
 
 window.saveMappingData = () => {
     if (selectedGroup === null || !groups[selectedGroup]) return;
-    
+
     const currentJoint = `J${selectedButton + 1}`;
     const currentData = groups[selectedGroup].data[currentJoint].mappingData;
 
@@ -824,7 +848,7 @@ class NumericRangeSlider {
 
         this.range.style.left = `${Math.min(leftPosition, rightPosition) * 100}%`;
         this.range.style.right = `${(1 - Math.max(leftPosition, rightPosition)) * 100}%`;
-        
+
         if (this.values[0] > this.values[1] && this.leftBound <= this.rightBound ||
             this.values[0] <= this.values[1] && this.leftBound > this.rightBound)
             this.output = [this.values[1], this.values[0]];
@@ -861,3 +885,22 @@ const armSlider = new NumericRangeSlider('armSlider', {
     values: [0, 360],
     step: 1
 });
+
+const buttonSlider = document.querySelector('.button-23d-slider');
+const button2D = document.getElementById('button2D');
+const button3D = document.getElementById('button3D');
+
+function toggleButton(e, button) {
+    e.stopPropagation();
+    if (!button.classList.contains('active')) {
+        button2D.classList.toggle('active');
+        button3D.classList.toggle('active');
+        buttonSlider.style.transform = button === button2D ? 'translateY(0)' : 'translateY(40px)';
+    }
+}
+
+button2D.addEventListener('click', (e) => toggleButton(e, button2D));
+button3D.addEventListener('click', (e) => toggleButton(e, button3D));
+
+// Set initial state to 3D
+buttonSlider.style.transform = 'translateY(40px)';
