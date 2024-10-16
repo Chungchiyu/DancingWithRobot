@@ -81,6 +81,12 @@ class URDFViewer extends HTMLElement {
 
     }
 
+    // Nickchung changed
+    get getControls() {
+        return this.controls;
+    }
+    // Nickchung changed
+
     /* Lifecycle Functions */
     constructor() {
 

@@ -32,7 +32,8 @@ const elements = {
     addBtn: document.querySelector(".addBtn"),
     refreshBtn: document.querySelector('.refreshBtn'),
     clearBtn: document.querySelector(".clearBtn"),
-    homeBtn: document.querySelector('.homeBtn')
+    homeBtn: document.querySelector('.homeBtn'),
+    fixCamBtn: document.querySelector('.fixCamBtn')
 };
 
 // Constants
@@ -179,8 +180,7 @@ viewer.addEventListener('urdf-processed', () => {
             });
 
             input.addEventListener('change', () => {
-                const degMultiplier = RAD2DEG;
-                viewer.setJointValue(joint.name, input.value * degMultiplier);
+                viewer.setJointValue(joint.name, input.value * DEG2RAD);
                 elements.animToggle.classList.remove('checked');
                 li.update();
             });
@@ -355,7 +355,7 @@ function updateJointsData(index, updates) {
 
     // Remove old data from the array
     window.jointsData.splice(index, 1);
-    
+
 
     // Find new insertion position
     let insertIndex = window.jointsData.findIndex(data => data.time > updatedData.time);
@@ -511,21 +511,35 @@ elements.addBtn.addEventListener('click', () => {
     let jointAngles = Object.fromEntries(
         Object.keys(viewer.robot.joints)
             .slice(0, 6)
-            .map(key => {
+            .map((key, index) => {
                 let angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
                 let formattedAngle = angleInDegrees.toFixed(1);
-                return [key, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
+                return [`J${index + 1}`, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
             })
     );
 
     const newCardData = {
-        angles: jointAngles,
-        time: elements.cardContainer.childNodes.length + 1,
-        group: "New Group"
+        time: Math.round(video.currentTime * 100) / 100,
+        group: window.groupNameSelected,
+        angles: jointAngles
     };
 
-    window.jointsData.push(newCardData);
-    addFrameCard(window.jointsData.length - 1);
+    let inserted = false;
+    let i = 0;
+    for (; i < window.jointsData.length; i++) {
+        if (newCardData.time < window.jointsData[i].time) {
+            window.jointsData.splice(i, 0, newCardData);
+            inserted = true;
+            break;
+        }
+    }
+
+    if (!inserted) {
+        window.jointsData.push(newCardData);
+    }
+
+    addMarkerToProgressBar(newCardData.time);
+    addFrameCard(i);
 });
 
 // 修改 elements.refreshBtn 的事件監聽器
@@ -574,7 +588,7 @@ elements.clearBtn.addEventListener('click', () => {
     elements.progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
     window.jointsData = [];
     window.selectGroup(0);
-    window.groups.splice(1, window.groups.length-1);
+    window.groups.splice(1, window.groups.length - 1);
     window.updateGroups();
 });
 
@@ -695,5 +709,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (isLocalStorageEnabled) {
         applyLoadedData();
+    }
+});
+
+elements.fixCamBtn.addEventListener('click', () => {
+    elements.fixCamBtn.classList.toggle('active');
+    if (elements.fixCamBtn.classList.contains('active')) {
+        elements.fixCamBtn.style.color = 'red';
+        viewer.getControls.enableRotate = false;
+    } else {
+        elements.fixCamBtn.style.color = 'black';
+        viewer.getControls.enableRotate = true;
     }
 });

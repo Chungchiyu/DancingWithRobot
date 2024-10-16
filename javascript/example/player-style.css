@@ -162,7 +162,7 @@ video {
 .control-buttons button {
   background-color: rgba(255, 255, 255, 0.1);
   border: none;
-  color: white;
+  color: rgba(255, 255, 255, 0.3);
   font-size: 18px;
   padding: 10px;
   margin: 0 5px;
@@ -173,6 +173,10 @@ video {
 
 .control-buttons button:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+.control-buttons button.active{
+  color: white;
 }
 
 .centered-button {

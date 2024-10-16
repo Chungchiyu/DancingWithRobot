@@ -82,9 +82,11 @@ poseDetectToggle.addEventListener('click', () => {
   poseDetectToggle.classList.toggle('checked');
   if (poseDetectToggle.classList.contains('checked')) {
     canvas.style.display = '';
+    recordDataButton.classList.add('active');
     estimatePoses();
   } else {
     canvas.style.display = 'none';
+    recordDataButton.classList.remove('active');
   }
 });
 
@@ -214,15 +216,17 @@ function angleMapping(angles, groupData) {
     if (angle !== undefined && !isNaN(angle)) {
       // Clamp the angle to the range defined in mappingData
       let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
-
+      
       // Map the angle using the values from mappingData
       angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+      
       if (angleOut[joint] === undefined || isNaN(angleOut[joint]))
         angleOut[joint] = 0;
     } else {
       // If angle is undefined or NaN, use a default value or skip
       angleOut[joint] = 0; // or any other default value
     }
+    angleOut[joint] = Math.round(angleOut[joint] * 10) / 10;
   }
   // console.log(angleOut);
   return angleOut;
@@ -422,11 +426,14 @@ function restart() {
 const recordDataButton = document.getElementById('record-data');
 window.jointsData = [];
 
-recordDataButton.addEventListener('click', recordData);
+recordDataButton.addEventListener('click', () => {
+  if (recordDataButton.classList.contains('active'))
+    recordData(lastPoseAngles);
+});
 
-function recordData() {
-  const currentTime = video.currentTime;
-  const newData = { time: currentTime, group: window.groupNameSelected, angles: { ...lastPoseAngles } };
+window.recordData = (poseAngles) => {
+  const currentTime = Math.round(video.currentTime * 100) / 100;
+  const newData = { time: currentTime, group: window.groupNameSelected, angles: { ...poseAngles } };
 
   let inserted = false;
   let i = 0;
