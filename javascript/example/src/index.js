@@ -128,7 +128,7 @@ viewer.addEventListener('urdf-processed', () => {
             li.innerHTML = `
         <span title="${joint.name}">${joint.name}</span>
         <input type="range" value="0" step="0.0001"/>
-        <input type="number" step="0.0001" />
+        <input type="number" step="0.1" />
       `;
             li.setAttribute('joint-type', joint.jointType);
             li.setAttribute('joint-name', joint.name);
@@ -320,7 +320,7 @@ function updateCardContent(card, data, index) {
     card.querySelector('img').src = captureRobotImage(data.angles);
     card.querySelector('.number').textContent = index + 1;
     card.querySelector('#group-card').textContent = data.group;
-    card.querySelector('input').value = data.time.toFixed(2);
+    card.querySelector('input').value = data.time;
 }
 
 const captureRobotImage = (angles) => {
@@ -465,6 +465,8 @@ const addFrameCard = (index) => {
     });
 
     card.addEventListener('click', () => {
+        const index = Array.from(card.parentNode.children).indexOf(card);
+        const cardData = window.jointsData[index];
         highlightCard(card);
         elements.video.currentTime = parseFloat(card.querySelector('input').value);
         Object.entries(cardData.angles).forEach(([joint, angle]) => {
@@ -545,19 +547,22 @@ elements.addBtn.addEventListener('click', () => {
 // 修改 elements.refreshBtn 的事件監聽器
 elements.refreshBtn.addEventListener('click', () => {
     updateCardNumbers();
-    elements.cardContainer.childNodes.forEach(child => {
+    elements.cardContainer.childNodes.forEach((child, index) => {
         if (child.classList.contains('highlighted')) {
             let jointAngles = Object.fromEntries(
                 Object.keys(viewer.robot.joints)
                     .slice(0, 6)
-                    .map(key => {
+                    .map((key, index) => {
                         let angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
                         let formattedAngle = angleInDegrees.toFixed(1);
-                        return [key, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
+                        return [`J${index + 1}`, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
                     })
             );
 
-            updateCardContent(child, { angles: jointAngles, group: child.querySelector('#group-card').textContent }, Array.from(elements.cardContainer.children).indexOf(child));
+            const time = child.querySelector('input').value;
+            const group = child.querySelector('#group-card').textContent;
+            updateCardContent(child, { time: time, angles: jointAngles, group: group }, Array.from(elements.cardContainer.children).indexOf(child));
+            window.jointsData[index].angles = jointAngles;
         }
     });
 });

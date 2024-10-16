@@ -52278,7 +52278,7 @@ viewer.addEventListener('urdf-processed', function () {
     return r.joints[key];
   }).forEach(function (joint) {
     var li = document.createElement('li');
-    li.innerHTML = "\n            <span title=\"".concat(joint.name, "\">").concat(joint.name, "</span>\n            <input type=\"range\" value=\"0\" step=\"0.0001\"/>\n            <input type=\"number\" step=\"0.0001\" />\n            ");
+    li.innerHTML = "\n            <span title=\"".concat(joint.name, "\">").concat(joint.name, "</span>\n            <input type=\"range\" value=\"0\"/>\n            <input type=\"number\"/>\n            ");
     li.setAttribute('joint-type', joint.jointType);
     li.setAttribute('joint-name', joint.name);
     sliderList.appendChild(li);
