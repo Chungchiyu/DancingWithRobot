@@ -216,10 +216,10 @@ function angleMapping(angles, groupData) {
     if (angle !== undefined && !isNaN(angle)) {
       // Clamp the angle to the range defined in mappingData
       let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
-      
+
       // Map the angle using the values from mappingData
       angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
-      
+
       if (angleOut[joint] === undefined || isNaN(angleOut[joint]))
         angleOut[joint] = 0;
     } else {
@@ -668,3 +668,17 @@ function formatTime(seconds) {
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
+
+document.addEventListener('keyup', function (event) {
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    if (poseDetectToggle.classList.contains('checked'))
+      recordData(lastPoseAngles);
+  }
+});
+
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Tab') {
+    event.preventDefault();
+  }
+});

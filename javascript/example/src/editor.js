@@ -113,12 +113,61 @@ function exportAndDownload() {
     console.log(jointsData);
     const jsonString = JSON.stringify(jsonData, null, 2);
 
-    const blob = new Blob([jsonString], { type: 'application/json' });
+    // Download JSON
+    downloadFile(jsonString, 'generated_data.json', 'application/json');
+
+    // Download Excel
+    const workbook = XLSX.utils.book_new();
+    
+    // Process groups data
+    // const groupsSheet = XLSX.utils.json_to_sheet(processGroupsData(groups));
+    // XLSX.utils.book_append_sheet(workbook, groupsSheet, "Groups");
+    
+    // Process jointsData
+    const jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
+    XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
+    
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    downloadFile(excelBuffer, 'generated_data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
+
+function processGroupsData(groups) {
+    const processedGroups = [];
+    groups.forEach(group => {
+        const groupData = group.data;
+        for (const [jointName, jointData] of Object.entries(groupData)) {
+            const row = {
+                group_name: group.name,
+                joint_name: jointName,
+                angles: jointData.angles,
+                ...jointData.mappingData
+            };
+            processedGroups.push(row);
+        }
+    });
+    return processedGroups;
+}
+
+function processJointsData(jointsData) {
+    return jointsData.map(frame => {
+        const processedFrame = {
+            time: frame.time,
+            group: frame.group
+        };
+        for (const [jointName, angle] of Object.entries(frame.angles)) {
+            processedFrame[`${jointName}`] = angle;
+        }
+        return processedFrame;
+    });
+}
+
+function downloadFile(content, fileName, mimeType) {
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'generated_data.json';
+    a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -126,13 +175,14 @@ function exportAndDownload() {
 }
 
 
-
 // Get references to the DOM elements
 const fileInput = document.getElementById('fileInput');
 const output = document.getElementById('output');
+const clearBtn = document.querySelector(".clearBtn");
 
 // Add event listener for file selection
 fileInput.addEventListener('change', handleFileSelect);
+clearBtn.addEventListener('click', () => { fileInput.value = ''; });
 
 function handleFileSelect(event) {
     const file = event.target.files[0];

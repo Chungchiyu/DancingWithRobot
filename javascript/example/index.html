@@ -13,6 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <link href="./styles.css" type="text/css" rel="stylesheet" />
     <link href="./player-style.css" type="text/css" rel="stylesheet" />
@@ -154,7 +155,7 @@
                     <div id="poseDetect" class="toggle checked">Pose Detection</div>
                     <div id="link-robot" class="toggle">Link to robot</div>
                     <div id="do-animate" class="toggle"><i class='fa fa-play-circle'></i> Play Animation</div>
-                    <label>
+                    <label style="display: none;">
                         Up Axis
                         <select id="up-select">
                             <option value="+X">+X</option>
@@ -168,7 +169,7 @@
                     <ul></ul>
                     <div id="container">
                         <div class="button">
-                            <button class="addBtn btn">Copy</button>
+                            <button class="copyBtn btn">Copy</button>
                             <button class="refreshBtn btn">Refresh</button>
                             <button class="clearBtn btn">Clear</button>
                             <button class="homeBtn btn">Home</button>

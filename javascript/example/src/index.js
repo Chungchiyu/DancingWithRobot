@@ -29,7 +29,7 @@ const elements = {
     cardContainer: document.getElementById('poseCard-container'),
     video: document.getElementById('video'),
     progressContainer: document.getElementById('progress-container'),
-    addBtn: document.querySelector(".addBtn"),
+    copyBtn: document.querySelector(".copyBtn"),
     refreshBtn: document.querySelector('.refreshBtn'),
     clearBtn: document.querySelector(".clearBtn"),
     homeBtn: document.querySelector('.homeBtn'),
@@ -311,13 +311,14 @@ document.addEventListener('WebComponentsReady', () => {
 });
 
 // Update card content function
-function updateCardContent(card, data, index) {
+function updateCardContent(card, data, index, updateImg = true) {
     // console.log(data);
     card.querySelector('.angles').innerHTML =
         Object.entries(data.angles)
             .map(([joint, angle]) => `<div>${angle == null ? 'NAN' : angle.toFixed(1)}</div>`)
             .join('');
-    card.querySelector('img').src = captureRobotImage(data.angles);
+    if (updateImg)
+        card.querySelector('img').src = captureRobotImage(data.angles);
     card.querySelector('.number').textContent = index + 1;
     card.querySelector('#group-card').textContent = data.group;
     card.querySelector('input').value = data.time;
@@ -369,19 +370,19 @@ function updateJointsData(index, updates) {
     // Update all card contents
     // updateAllCardContents();
     // Simulate continuous mouse drag
-    reorderCardsWithAnimation(index, insertIndex);
+    swapCardsWithAnimation(index, insertIndex);
     // console.log(index, insertIndex)
     updateMarkers();
     saveLocalData();
 }
 
-function reorderCardsWithAnimation(oldIndex, newIndex) {
+function swapCardsWithAnimation(oldIndex, newIndex) {
     const cards = Array.from(elements.cardContainer.children);
     const card = cards[oldIndex];
 
     // If the card position hasn't changed, no animation is needed
     if (oldIndex === newIndex) {
-        updateAllCardContents();
+        updateCardContent(card, window.jointsData[oldIndex], oldIndex);
         return;
     }
 
@@ -414,7 +415,7 @@ function reorderCardsWithAnimation(oldIndex, newIndex) {
 function updateAllCardContents() {
     const cards = Array.from(elements.cardContainer.children);
     cards.forEach((card, index) => {
-        updateCardContent(card, window.jointsData[index], index);
+        updateCardContent(card, window.jointsData[index], index, false);
     });
 }
 
@@ -441,10 +442,16 @@ const addFrameCard = (index) => {
     card.querySelector('.close').addEventListener('click', (event) => {
         event.stopPropagation();
         const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+        if (card.classList.contains('highlighted')) {
+            if (currentIndex != 0)
+                highlightCard(card.previousElementSibling);
+            else if (elements.cardContainer.childNodes.length > 1)
+                highlightCard(card.nextElementSibling);
+        }
         window.jointsData.splice(currentIndex, 1);
         elements.cardContainer.removeChild(card);
         const marker = elements.progressContainer.querySelectorAll('.progress-marker');
-        elements.progressContainer.removeChild(marker[parseInt(card.querySelector('.number').textContent) - 1]);
+        elements.progressContainer.removeChild(marker[currentIndex]);
 
         updateCardNumbers();
         // console.log(window.jointsData);
@@ -465,14 +472,7 @@ const addFrameCard = (index) => {
     });
 
     card.addEventListener('click', () => {
-        const index = Array.from(card.parentNode.children).indexOf(card);
-        const cardData = window.jointsData[index];
         highlightCard(card);
-        elements.video.currentTime = parseFloat(card.querySelector('input').value);
-        Object.entries(cardData.angles).forEach(([joint, angle]) => {
-            const joint_name = joint.replace('J', 'joint_');
-            viewer.setJointValue(joint_name, angle * DEG2RAD);
-        });
     });
 
     let insertIndex = findInsertIndex(cardData.time);
@@ -504,12 +504,18 @@ const updateCardNumbers = () => {
 };
 
 const highlightCard = (card) => {
+    const index = Array.from(card.parentNode.children).indexOf(card);
+    const cardData = window.jointsData[index];
+    elements.video.currentTime = parseFloat(card.querySelector('input').value);
+    Object.entries(cardData.angles).forEach(([joint, angle]) => {
+        const joint_name = joint.replace('J', 'joint_');
+        viewer.setJointValue(joint_name, angle * DEG2RAD);
+    });
     elements.cardContainer.childNodes.forEach(child => child.classList.remove('highlighted'));
     card.classList.add('highlighted');
 };
 
-// 修改 elements.addBtn 的事件監聽器
-elements.addBtn.addEventListener('click', () => {
+elements.copyBtn.addEventListener('click', () => {
     let jointAngles = Object.fromEntries(
         Object.keys(viewer.robot.joints)
             .slice(0, 6)
@@ -544,27 +550,25 @@ elements.addBtn.addEventListener('click', () => {
     addFrameCard(i);
 });
 
-// 修改 elements.refreshBtn 的事件監聽器
 elements.refreshBtn.addEventListener('click', () => {
     updateCardNumbers();
-    elements.cardContainer.childNodes.forEach((child, index) => {
-        if (child.classList.contains('highlighted')) {
-            let jointAngles = Object.fromEntries(
-                Object.keys(viewer.robot.joints)
-                    .slice(0, 6)
-                    .map((key, index) => {
-                        let angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
-                        let formattedAngle = angleInDegrees.toFixed(1);
-                        return [`J${index + 1}`, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
-                    })
-            );
+    const card = elements.cardContainer.querySelector('.highlighted');
+    const index = Array.from(card.parentNode.children).indexOf(card);
 
-            const time = child.querySelector('input').value;
-            const group = child.querySelector('#group-card').textContent;
-            updateCardContent(child, { time: time, angles: jointAngles, group: group }, Array.from(elements.cardContainer.children).indexOf(child));
-            window.jointsData[index].angles = jointAngles;
-        }
-    });
+    let jointAngles = Object.fromEntries(
+        Object.keys(viewer.robot.joints)
+            .slice(0, 6)
+            .map((key, index) => {
+                let angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
+                let formattedAngle = angleInDegrees.toFixed(1);
+                return [`J${index + 1}`, formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
+            })
+    );
+
+    const time = card.querySelector('input').value;
+    const group = card.querySelector('#group-card').textContent;
+    updateCardContent(card, { time: time, angles: jointAngles, group: group }, index);
+    window.jointsData[index].angles = jointAngles;
 });
 
 // Initialize Sortable with swap option
@@ -687,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Add event listeners to save data after relevant actions
-elements.addBtn.addEventListener('click', saveLocalData);
+elements.copyBtn.addEventListener('click', saveLocalData);
 elements.refreshBtn.addEventListener('click', saveLocalData);
 elements.clearBtn.addEventListener('click', saveLocalData);
 
@@ -726,4 +730,69 @@ elements.fixCamBtn.addEventListener('click', () => {
         elements.fixCamBtn.style.color = 'black';
         viewer.getControls.enableRotate = true;
     }
+});
+
+let videoVolume = 1;
+
+// keyboard functions
+document.addEventListener('keyup', function(event) {
+    if (event.key === 'Delete') {
+        const card = elements.cardContainer.querySelector('.highlighted');
+        if (card) {
+            const index = Array.from(elements.cardContainer.children).indexOf(card);
+            if (index != 0)
+                highlightCard(card.previousElementSibling);
+            else if (elements.cardContainer.childNodes.length > 1)
+                highlightCard(card.nextElementSibling);
+            window.jointsData.splice(index, 1);
+            elements.cardContainer.removeChild(card);
+            const marker = elements.progressContainer.querySelectorAll('.progress-marker');
+            elements.progressContainer.removeChild(marker[index]);
+
+            updateCardNumbers();
+        }
+    }
+
+    if (event.key === 'ArrowUp') {
+        const card = elements.cardContainer.querySelector('.highlighted');
+        if (card.previousElementSibling)
+            highlightCard(card.previousElementSibling);
+
+    } else if (event.key === 'ArrowDown') {
+        const card = elements.cardContainer.querySelector('.highlighted');
+        if (card.nextElementSibling)
+            highlightCard(card.nextElementSibling);
+    }
+
+
+    if (event.key === 'm') {
+        if (video.volume != 0) {
+            video.volume = 0;
+        }
+        else {
+            video.volume = videoVolume;
+        }
+    }
+
+    if (event.key === '+') {
+        video.volume += 0.1;
+        videoVolume = video.volume;
+    } else if (event.key === '-') {
+        video.volume -= 0.1;
+        videoVolume = video.volume;
+    }
+
+    if (event.key === ' ') {
+        if (video.paused)
+            video.play();
+        else
+            video.pause();
+    }
+});
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'ArrowLeft')
+        video.currentTime -= 0.1;
+    else if (event.key === 'ArrowRight')
+        video.currentTime += 0.1;
 });
