@@ -120,6 +120,11 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 })({"KcYi":[function(require,module,exports) {
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _regeneratorRuntime() { "use strict"; /*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */ _regeneratorRuntime = function _regeneratorRuntime() { return e; }; var t, e = {}, r = Object.prototype, n = r.hasOwnProperty, o = Object.defineProperty || function (t, e, r) { t[e] = r.value; }, i = "function" == typeof Symbol ? Symbol : {}, a = i.iterator || "@@iterator", c = i.asyncIterator || "@@asyncIterator", u = i.toStringTag || "@@toStringTag"; function define(t, e, r) { return Object.defineProperty(t, e, { value: r, enumerable: !0, configurable: !0, writable: !0 }), t[e]; } try { define({}, ""); } catch (t) { define = function define(t, e, r) { return t[e] = r; }; } function wrap(t, e, r, n) { var i = e && e.prototype instanceof Generator ? e : Generator, a = Object.create(i.prototype), c = new Context(n || []); return o(a, "_invoke", { value: makeInvokeMethod(t, r, c) }), a; } function tryCatch(t, e, r) { try { return { type: "normal", arg: t.call(e, r) }; } catch (t) { return { type: "throw", arg: t }; } } e.wrap = wrap; var h = "suspendedStart", l = "suspendedYield", f = "executing", s = "completed", y = {}; function Generator() {} function GeneratorFunction() {} function GeneratorFunctionPrototype() {} var p = {}; define(p, a, function () { return this; }); var d = Object.getPrototypeOf, v = d && d(d(values([]))); v && v !== r && n.call(v, a) && (p = v); var g = GeneratorFunctionPrototype.prototype = Generator.prototype = Object.create(p); function defineIteratorMethods(t) { ["next", "throw", "return"].forEach(function (e) { define(t, e, function (t) { return this._invoke(e, t); }); }); } function AsyncIterator(t, e) { function invoke(r, o, i, a) { var c = tryCatch(t[r], t, o); if ("throw" !== c.type) { var u = c.arg, h = u.value; return h && "object" == _typeof(h) && n.call(h, "__await") ? e.resolve(h.__await).then(function (t) { invoke("next", t, i, a); }, function (t) { invoke("throw", t, i, a); }) : e.resolve(h).then(function (t) { u.value = t, i(u); }, function (t) { return invoke("throw", t, i, a); }); } a(c.arg); } var r; o(this, "_invoke", { value: function value(t, n) { function callInvokeWithMethodAndArg() { return new e(function (e, r) { invoke(t, n, e, r); }); } return r = r ? r.then(callInvokeWithMethodAndArg, callInvokeWithMethodAndArg) : callInvokeWithMethodAndArg(); } }); } function makeInvokeMethod(e, r, n) { var o = h; return function (i, a) { if (o === f) throw Error("Generator is already running"); if (o === s) { if ("throw" === i) throw a; return { value: t, done: !0 }; } for (n.method = i, n.arg = a;;) { var c = n.delegate; if (c) { var u = maybeInvokeDelegate(c, n); if (u) { if (u === y) continue; return u; } } if ("next" === n.method) n.sent = n._sent = n.arg;else if ("throw" === n.method) { if (o === h) throw o = s, n.arg; n.dispatchException(n.arg); } else "return" === n.method && n.abrupt("return", n.arg); o = f; var p = tryCatch(e, r, n); if ("normal" === p.type) { if (o = n.done ? s : l, p.arg === y) continue; return { value: p.arg, done: n.done }; } "throw" === p.type && (o = s, n.method = "throw", n.arg = p.arg); } }; } function maybeInvokeDelegate(e, r) { var n = r.method, o = e.iterator[n]; if (o === t) return r.delegate = null, "throw" === n && e.iterator.return && (r.method = "return", r.arg = t, maybeInvokeDelegate(e, r), "throw" === r.method) || "return" !== n && (r.method = "throw", r.arg = new TypeError("The iterator does not provide a '" + n + "' method")), y; var i = tryCatch(o, e.iterator, r.arg); if ("throw" === i.type) return r.method = "throw", r.arg = i.arg, r.delegate = null, y; var a = i.arg; return a ? a.done ? (r[e.resultName] = a.value, r.next = e.nextLoc, "return" !== r.method && (r.method = "next", r.arg = t), r.delegate = null, y) : a : (r.method = "throw", r.arg = new TypeError("iterator result is not an object"), r.delegate = null, y); } function pushTryEntry(t) { var e = { tryLoc: t[0] }; 1 in t && (e.catchLoc = t[1]), 2 in t && (e.finallyLoc = t[2], e.afterLoc = t[3]), this.tryEntries.push(e); } function resetTryEntry(t) { var e = t.completion || {}; e.type = "normal", delete e.arg, t.completion = e; } function Context(t) { this.tryEntries = [{ tryLoc: "root" }], t.forEach(pushTryEntry, this), this.reset(!0); } function values(e) { if (e || "" === e) { var r = e[a]; if (r) return r.call(e); if ("function" == typeof e.next) return e; if (!isNaN(e.length)) { var o = -1, i = function next() { for (; ++o < e.length;) if (n.call(e, o)) return next.value = e[o], next.done = !1, next; return next.value = t, next.done = !0, next; }; return i.next = i; } } throw new TypeError(_typeof(e) + " is not iterable"); } return GeneratorFunction.prototype = GeneratorFunctionPrototype, o(g, "constructor", { value: GeneratorFunctionPrototype, configurable: !0 }), o(GeneratorFunctionPrototype, "constructor", { value: GeneratorFunction, configurable: !0 }), GeneratorFunction.displayName = define(GeneratorFunctionPrototype, u, "GeneratorFunction"), e.isGeneratorFunction = function (t) { var e = "function" == typeof t && t.constructor; return !!e && (e === GeneratorFunction || "GeneratorFunction" === (e.displayName || e.name)); }, e.mark = function (t) { return Object.setPrototypeOf ? Object.setPrototypeOf(t, GeneratorFunctionPrototype) : (t.__proto__ = GeneratorFunctionPrototype, define(t, u, "GeneratorFunction")), t.prototype = Object.create(g), t; }, e.awrap = function (t) { return { __await: t }; }, defineIteratorMethods(AsyncIterator.prototype), define(AsyncIterator.prototype, c, function () { return this; }), e.AsyncIterator = AsyncIterator, e.async = function (t, r, n, o, i) { void 0 === i && (i = Promise); var a = new AsyncIterator(wrap(t, r, n, o), i); return e.isGeneratorFunction(r) ? a : a.next().then(function (t) { return t.done ? t.value : a.next(); }); }, defineIteratorMethods(g), define(g, u, "Generator"), define(g, a, function () { return this; }), define(g, "toString", function () { return "[object Generator]"; }), e.keys = function (t) { var e = Object(t), r = []; for (var n in e) r.push(n); return r.reverse(), function next() { for (; r.length;) { var t = r.pop(); if (t in e) return next.value = t, next.done = !1, next; } return next.done = !0, next; }; }, e.values = values, Context.prototype = { constructor: Context, reset: function reset(e) { if (this.prev = 0, this.next = 0, this.sent = this._sent = t, this.done = !1, this.delegate = null, this.method = "next", this.arg = t, this.tryEntries.forEach(resetTryEntry), !e) for (var r in this) "t" === r.charAt(0) && n.call(this, r) && !isNaN(+r.slice(1)) && (this[r] = t); }, stop: function stop() { this.done = !0; var t = this.tryEntries[0].completion; if ("throw" === t.type) throw t.arg; return this.rval; }, dispatchException: function dispatchException(e) { if (this.done) throw e; var r = this; function handle(n, o) { return a.type = "throw", a.arg = e, r.next = n, o && (r.method = "next", r.arg = t), !!o; } for (var o = this.tryEntries.length - 1; o >= 0; --o) { var i = this.tryEntries[o], a = i.completion; if ("root" === i.tryLoc) return handle("end"); if (i.tryLoc <= this.prev) { var c = n.call(i, "catchLoc"), u = n.call(i, "finallyLoc"); if (c && u) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } else if (c) { if (this.prev < i.catchLoc) return handle(i.catchLoc, !0); } else { if (!u) throw Error("try statement without catch or finally"); if (this.prev < i.finallyLoc) return handle(i.finallyLoc); } } } }, abrupt: function abrupt(t, e) { for (var r = this.tryEntries.length - 1; r >= 0; --r) { var o = this.tryEntries[r]; if (o.tryLoc <= this.prev && n.call(o, "finallyLoc") && this.prev < o.finallyLoc) { var i = o; break; } } i && ("break" === t || "continue" === t) && i.tryLoc <= e && e <= i.finallyLoc && (i = null); var a = i ? i.completion : {}; return a.type = t, a.arg = e, i ? (this.method = "next", this.next = i.finallyLoc, y) : this.complete(a); }, complete: function complete(t, e) { if ("throw" === t.type) throw t.arg; return "break" === t.type || "continue" === t.type ? this.next = t.arg : "return" === t.type ? (this.rval = this.arg = t.arg, this.method = "return", this.next = "end") : "normal" === t.type && e && (this.next = e), y; }, finish: function finish(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.finallyLoc === t) return this.complete(r.completion, r.afterLoc), resetTryEntry(r), y; } }, catch: function _catch(t) { for (var e = this.tryEntries.length - 1; e >= 0; --e) { var r = this.tryEntries[e]; if (r.tryLoc === t) { var n = r.completion; if ("throw" === n.type) { var o = n.arg; resetTryEntry(r); } return o; } } throw Error("illegal catch attempt"); }, delegateYield: function delegateYield(e, r, n) { return this.delegate = { iterator: values(e), resultName: r, nextLoc: n }, "next" === this.method && (this.arg = t), y; } }, e; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -152,7 +157,10 @@ var lastPoseAngles;
 var videoAspectRatio = 16 / 9;
 var lowResCanvas;
 var lowResolution = 720;
-document.addEventListener('DOMContentLoaded', LoadMediaPipe);
+document.addEventListener('DOMContentLoaded', function () {
+  LoadMediaPipe();
+  periodicPoseEstimation();
+});
 var model;
 var detector;
 function initPoseDetector() {
@@ -239,6 +247,7 @@ function _LoadMediaPipe() {
   return _LoadMediaPipe.apply(this, arguments);
 }
 video.addEventListener('loadedmetadata', function () {
+  totalTimeEl.textContent = formatTime(video.duration);
   videoAspectRatio = video.videoWidth / video.videoHeight;
   resizeCanvas();
   createLowResCanvas();
@@ -254,8 +263,14 @@ restartButton.addEventListener('click', restart);
 closeButton.addEventListener('click', closeVideo);
 poseDetectToggle.addEventListener('click', function () {
   poseDetectToggle.classList.toggle('checked');
-  estimatePoses();
-  if (poseDetectToggle.classList.contains('checked')) canvas.style.display = '';else canvas.style.display = 'none';
+  if (poseDetectToggle.classList.contains('checked')) {
+    canvas.style.display = '';
+    recordDataButton.classList.add('active');
+    estimatePoses();
+  } else {
+    canvas.style.display = 'none';
+    recordDataButton.classList.remove('active');
+  }
 });
 linkRobot.addEventListener('click', function () {
   linkRobot.classList.toggle('checked');
@@ -330,7 +345,7 @@ function drawPoses(poses) {
     });
     var angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
     displayAngles(ctx, angles);
-    var remapAngles = angleMapping(angles);
+    var remapAngles = angleMapping(angles, window.groups[window.selectedGroup].data);
     lastPoseAngles = remapAngles;
     if (linkRobot.classList.contains('checked')) {
       Object.keys(window.viewer.robot.joints).slice(0, 6).map(function (jointName, index) {
@@ -338,6 +353,7 @@ function drawPoses(poses) {
       });
     }
   }
+  console.log('estimation');
 
   // if (poses.length > 0) {
   //   const pose = poses[0];
@@ -353,30 +369,27 @@ function drawPoses(poses) {
   //   });
   // }
 }
-var angleOut = [];
-function angleMapping(angles) {
-  if (angles.J1 !== 'undefined' && angles.J1 !== 'nan') {
-    angleOut.J1 = angles.J1 > 90 ? 90 : angles.J1;
-    angleOut.J1 = angles.J1 < -90 ? -90 : angles.J1;
-    angleOut.J1 = map(angleOut.J1, 90, -90, -110, 110);
+function angleMapping(angles, groupData) {
+  var angleOut = {};
+  for (var i = 1; i <= 6; i++) {
+    var joint = "J".concat(i);
+    var angle = angles[joint];
+    // console.log(groupData[joint])
+    var mappingData = groupData[joint].mappingData;
+    if (angle !== undefined && !isNaN(angle)) {
+      // Clamp the angle to the range defined in mappingData
+      var clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
+
+      // Map the angle using the values from mappingData
+      angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+      if (angleOut[joint] === undefined || isNaN(angleOut[joint])) angleOut[joint] = 0;
+    } else {
+      // If angle is undefined or NaN, use a default value or skip
+      angleOut[joint] = 0; // or any other default value
+    }
+    angleOut[joint] = Math.round(angleOut[joint] * 10) / 10;
   }
-  if (angles.J2 !== 'undefined' && angles.J2 !== 'nan') {
-    angleOut.J2 = angles.J2 > 180 ? 180 : angles.J2;
-    angleOut.J2 = angles.J2 < -180 ? -180 : angles.J2;
-    angleOut.J2 = map(angles.J2, 60, 0, -50, 0);
-  }
-  if (angles.J3 !== 'undefined' && angles.J3 !== 'nan') {
-    angleOut.J3 = angles.J3 > 180 ? 180 : angles.J3;
-    angleOut.J3 = angles.J3 < -180 ? -180 : angles.J3;
-    angleOut.J3 = map(angles.J3, 0, 180, -80, 90);
-  }
-  angleOut.J4 = 0;
-  if (angles.J5 !== 'undefined' && angles.J5 !== 'nan') {
-    angleOut.J5 = angles.J5 > 180 ? 180 : angles.J5;
-    angleOut.J5 = angles.J5 < -180 ? -180 : angles.J5;
-    angleOut.J5 = map(angles.J5, 180, 90, 0, -90);
-  }
-  angleOut.J6 = 0;
+  // console.log(angleOut);
   return angleOut;
 }
 function map(input, in_min, in_max, out_min, out_max) {
@@ -396,111 +409,156 @@ function calculateAllAngles(keypoints3D) {
     var _ref4 = _slicedToArray(_ref3, 2),
       key = _ref4[0],
       value = _ref4[1];
-    var points = value.split(',').map(function (id) {
+    var points = value.angles.split(',').map(function (id) {
       return id.trim();
     });
-    if (points.length === 3) {
-      var _points$map = points.map(function (i) {
-          if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
-          return keypoints3D[parseInt(i)] || {
-            x: 0,
-            y: 0,
-            z: 0,
-            score: 0
-          };
-        }),
-        _points$map2 = _slicedToArray(_points$map, 3),
-        a = _points$map2[0],
-        b = _points$map2[1],
-        c = _points$map2[2];
-      if (a.score > 0.2 && b.score > 0.2 || typeof c === 'string') {
-        angles[key] = calculateAngle(a, b, c);
-      } else {
-        console.warn("Low confidence for angle ".concat(key, ", skipping calculation"));
+    if (points.length === 3 || points.length === 4) {
+      if (points.length === 3) {
+        var _points$map = points.map(function (i) {
+            if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
+            return keypoints3D[parseInt(i)] || {
+              x: 0,
+              y: 0,
+              z: 0,
+              score: 0
+            };
+          }),
+          _points$map2 = _slicedToArray(_points$map, 3),
+          a = _points$map2[0],
+          b = _points$map2[1],
+          c = _points$map2[2];
+        if (a.score > 0.2 && b.score > 0.2 || typeof c === 'string') {
+          angles[key] = calculateAngle(a, b, c);
+        } else {
+          console.warn("Low confidence for angle ".concat(key, ", skipping calculation"));
+        }
+      } else if (points.length === 4) {
+        // Handle 4-point case
+        var _points$map3 = points.map(function (i) {
+            return keypoints3D[parseInt(i)] || {
+              x: 0,
+              y: 0,
+              z: 0,
+              score: 0
+            };
+          }),
+          _points$map4 = _slicedToArray(_points$map3, 4),
+          _a = _points$map4[0],
+          _b = _points$map4[1],
+          _c = _points$map4[2],
+          d = _points$map4[3];
+        if (_a.score > 0.2 && _b.score > 0.2 && _c.score > 0.2 && d.score > 0.2) {
+          angles[key] = calculateAngle(_a, _b, _c, d);
+        } else {
+          console.warn("Low confidence for angle ".concat(key, ", skipping calculation"));
+        }
       }
     } else {
-      console.warn("Invalid number of points for angle ".concat(key, ", expected 3 but got ").concat(points.length));
+      console.warn("Invalid number of points for angle ".concat(key, ", expected 3 or 4 but got ").concat(points.length));
     }
   });
   return angles;
 }
-function calculateAngle(A, B, C) {
-  // Check if we're dealing with 2D or 3D calculation
-  var is3D = typeof C === 'string';
+function calculateAngle(A, B, C, D) {
+  if (D === undefined) {
+    // Check if we're dealing with 2D or 3D calculation
+    var is3D = typeof C === 'string';
 
-  // Vector from B to A
-  var BA = {
-    x: A.x - B.x,
-    y: A.y - B.y,
-    z: is3D ? (A.z || 0) - (B.z || 0) : 0
-  };
-  var BC;
-  if (is3D) {
-    switch (C) {
-      case "OH":
-        BC = {
-          x: 0,
-          y: 0,
-          z: -1
-        };
-        break;
-      case "DV":
-        BC = {
-          x: 0,
-          y: -1,
-          z: 0
-        };
-        break;
-      case "RH":
-        BC = {
-          x: 1,
-          y: 0,
-          z: 0
-        };
-        break;
-      case "IH":
-        BC = {
-          x: 0,
-          y: 0,
-          z: 1
-        };
-        break;
-      case "UV":
-        BC = {
-          x: 0,
-          y: 1,
-          z: 0
-        };
-        break;
-      case "LH":
-        BC = {
-          x: -1,
-          y: 0,
-          z: 0
-        };
-        break;
-      default:
-        throw new Error("Unknown axis: ".concat(C));
-    }
-
-    // 3D calculation
-    var angle = calculateAngleBetweenVectors(BA, BC);
-    var cross = crossProduct(BA, BC);
-    var dot = dotProduct(cross, {
-      x: 0,
-      y: 1,
-      z: 0
-    }); // Assuming Y is up
-    return dot < 0 ? -angle : angle;
-  } else {
-    // Vector from B to C
-    BC = {
-      x: C.x - B.x,
-      y: C.y - B.y,
-      z: is3D ? (C.z || 0) - (B.z || 0) : 0
+    // Vector from B to A
+    var BA = {
+      x: A.x - B.x,
+      y: A.y - B.y,
+      z: is3D ? (A.z || 0) - (B.z || 0) : 0
     };
-    // 2D calculation
-    return calculateAngle2D(BA, BC);
+    var BC;
+    if (is3D) {
+      switch (C) {
+        case "OH":
+          BC = {
+            x: 0,
+            y: 0,
+            z: -1
+          };
+          break;
+        case "DV":
+          BC = {
+            x: 0,
+            y: -1,
+            z: 0
+          };
+          break;
+        case "RH":
+          BC = {
+            x: 1,
+            y: 0,
+            z: 0
+          };
+          break;
+        case "IH":
+          BC = {
+            x: 0,
+            y: 0,
+            z: 1
+          };
+          break;
+        case "UV":
+          BC = {
+            x: 0,
+            y: 1,
+            z: 0
+          };
+          break;
+        case "LH":
+          BC = {
+            x: -1,
+            y: 0,
+            z: 0
+          };
+          break;
+        default:
+          throw new Error("Unknown axis: ".concat(C));
+      }
+
+      // 3D calculation
+      var angle = calculateAngleBetweenVectors(BA, BC);
+      var cross = crossProduct(BA, BC);
+      var dot = dotProduct(cross, {
+        x: 0,
+        y: 1,
+        z: 0
+      }); // Assuming Y is up
+      return dot < 0 ? -angle : angle;
+    } else {
+      // Vector from B to C
+      BC = {
+        x: C.x - B.x,
+        y: C.y - B.y,
+        z: is3D ? (C.z || 0) - (B.z || 0) : 0
+      };
+      // 2D calculation
+      return calculateAngle2D(BA, BC);
+    }
+  } else {
+    // 4-point calculation
+    // Vector from A to B
+    var AB = {
+      x: B.x - A.x,
+      y: B.y - A.y,
+      z: B.z - A.z
+    };
+    // Vector from C to D
+    var CD = {
+      x: D.x - C.x,
+      y: D.y - C.y,
+      z: D.z - C.z
+    };
+
+    // Calculate angle between AB and CD vectors
+    var _dotProduct = AB.x * CD.x + AB.y * CD.y + AB.z * CD.z;
+    var magnitudeAB = Math.sqrt(AB.x * AB.x + AB.y * AB.y + AB.z * AB.z);
+    var magnitudeCD = Math.sqrt(CD.x * CD.x + CD.y * CD.y + CD.z * CD.z);
+    var _angle = Math.acos(_dotProduct / (magnitudeAB * magnitudeCD));
+    return _angle * (180 / Math.PI); // Convert to degrees
   }
 }
 function calculateAngle2D(v1, v2) {
@@ -562,7 +620,7 @@ function _loadVideo() {
         case 0:
           file = event.target.files[0];
           if (!file) {
-            _context4.next = 21;
+            _context4.next = 22;
             break;
           }
           video.src = URL.createObjectURL(file);
@@ -586,7 +644,8 @@ function _loadVideo() {
           resizeCanvas();
           createLowResCanvas();
           estimatePoses();
-        case 21:
+          window.updateMarkers();
+        case 22:
         case "end":
           return _context4.stop();
       }
@@ -601,10 +660,10 @@ function togglePlayPause() {
   if (video.paused) {
     video.play();
     playPauseAnimation.className = 'play-pause-animation play';
-    if (poseDetectToggle.classList.contains('checked')) requestAnimationFrame(estimatePoses);
   } else {
     video.pause();
     playPauseAnimation.className = 'play-pause-animation pause';
+    estimatePoses();
   }
   playPauseAnimation.style.display = 'block';
   setTimeout(function () {
@@ -618,17 +677,32 @@ function restart() {
 }
 var recordDataButton = document.getElementById('record-data');
 window.jointsData = [];
-recordDataButton.addEventListener('click', recordData);
-function recordData() {
-  var currentTime = video.currentTime;
-  jointsData = [{
+recordDataButton.addEventListener('click', function () {
+  if (recordDataButton.classList.contains('active')) recordData(lastPoseAngles);
+});
+window.recordData = function (poseAngles) {
+  var currentTime = Math.round(video.currentTime * 100) / 100;
+  var newData = {
     time: currentTime,
-    angles: lastPoseAngles
-  }];
+    group: window.groupNameSelected,
+    angles: _objectSpread({}, poseAngles)
+  };
+  var inserted = false;
+  var i = 0;
+  for (; i < window.jointsData.length; i++) {
+    if (currentTime < window.jointsData[i].time) {
+      window.jointsData.splice(i, 0, newData);
+      inserted = true;
+      break;
+    }
+  }
+  if (!inserted) {
+    window.jointsData.push(newData);
+  }
   addMarkerToProgressBar(currentTime);
-  window.newCard();
-}
-function addMarkerToProgressBar(time) {
+  window.addFrameCard(i);
+};
+window.addMarkerToProgressBar = function (time) {
   var progress = time / video.duration * 99 + 1;
   var marker = document.createElement('div');
   marker.className = 'progress-marker';
@@ -642,7 +716,7 @@ function addMarkerToProgressBar(time) {
     video.currentTime = time;
     updateProgress();
   });
-}
+};
 function updateProgress() {
   var progress = video.currentTime / video.duration * 99 + 1;
   var thickness = progressThumb.clientWidth;
@@ -670,6 +744,7 @@ function updateProgressWithEvent(e) {
   var width = rect.width;
   var newTime = x / width * video.duration;
   video.currentTime = newTime;
+  estimatePoses();
 }
 function generateThumbnails() {
   return _generateThumbnails.apply(this, arguments);
@@ -804,42 +879,52 @@ window.addEventListener('resize', function () {
 //     requestAnimationFrame(estimatePoses);
 //   }
 // }
-function estimatePoses() {
+
+var lastProcessedTime = 0;
+var processingInterval = 10;
+var estimationCount = 0;
+var maxEstimations = 5;
+var updatePose = document.getElementById('update-pose');
+updatePose.addEventListener('click', function () {
+  estimatePoses();
+});
+function estimatePoses(_x6) {
   return _estimatePoses.apply(this, arguments);
 }
 function _estimatePoses() {
-  _estimatePoses = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7() {
-    var lowResContext, poses;
+  _estimatePoses = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(refresh) {
+    var currentTime, poses;
     return _regeneratorRuntime().wrap(function _callee7$(_context7) {
       while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          if (!poseDetectToggle.classList.contains('checked')) {
-            _context7.next = 10;
+          if (!(poseDetectToggle.classList.contains('checked') && video.readyState >= 2 && poseNetLoaded || refresh)) {
+            _context7.next = 8;
             break;
           }
-          console.log('estimation');
-          if (!(video.readyState >= 2 && poseNetLoaded)) {
-            _context7.next = 9;
+          currentTime = video.currentTime;
+          if (!(currentTime !== lastProcessedTime || refresh)) {
+            _context7.next = 8;
             break;
           }
-          lowResContext = lowResCanvas.getContext('2d');
-          lowResContext.drawImage(video, 0, 0, lowResCanvas.width, lowResCanvas.height);
-          _context7.next = 7;
+          lastProcessedTime = currentTime;
+          _context7.next = 6;
           return detectPose(detector, video);
-        case 7:
+        case 6:
           poses = _context7.sent;
           drawPoses(poses);
-        case 9:
-          if (!video.paused) {
-            requestAnimationFrame(estimatePoses);
-          }
-        case 10:
+        case 8:
         case "end":
           return _context7.stop();
       }
     }, _callee7);
   }));
   return _estimatePoses.apply(this, arguments);
+}
+function periodicPoseEstimation() {
+  if (poseDetectToggle.classList.contains('checked') && !video.paused) {
+    estimatePoses();
+  }
+  setTimeout(periodicPoseEstimation, processingInterval);
 }
 poseButton.addEventListener('click', function () {
   var poseList = document.querySelectorAll('.field');
@@ -856,5 +941,32 @@ document.querySelector('.overlay').addEventListener('click', function () {
   setTimeout(function () {
     document.querySelector('.modal').style.zIndex = '-1';
   }, 500);
+});
+
+// Video Controls with Time Display
+var currentTimeEl = document.getElementById('current-time');
+var totalTimeEl = document.getElementById('total-time');
+video.addEventListener('timeupdate', function () {
+  currentTimeEl.textContent = formatTime(video.currentTime);
+  updateProgress();
+  if (video.paused) {
+    estimatePoses();
+  }
+});
+function formatTime(seconds) {
+  var minutes = Math.floor(seconds / 60);
+  var remainingSeconds = Math.floor(seconds % 60);
+  return "".concat(minutes, ":").concat(remainingSeconds.toString().padStart(2, '0'));
+}
+document.addEventListener('keyup', function (event) {
+  if (event.key === 'Tab') {
+    event.preventDefault();
+    if (poseDetectToggle.classList.contains('checked')) recordData(lastPoseAngles);
+  }
+});
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'Tab') {
+    event.preventDefault();
+  }
 });
 },{}]},{},["KcYi"], null)
