@@ -118,6 +118,14 @@ parcelRequire = (function (modules, cache, entry, globalName) {
 
   return newRequire;
 })({"EwPg":[function(require,module,exports) {
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -319,7 +327,7 @@ function selectNode(node, element) {
     selectedPoints.splice(index, 1);
     element.classList.remove('selected');
   } else {
-    if (selectedPoints.length >= 3) {
+    if (selectedPoints.length >= 4) {
       var removedNode = selectedPoints.shift();
       document.querySelector(".node:nth-child(".concat(removedNode.id + 1, ")")).classList.remove('selected');
     }
@@ -497,6 +505,33 @@ function updateAngle() {
     var exteriorAngle = 2 * Math.PI - interiorAngle;
     drawAngle(_p, _p2, p3, interiorAngle, 'red', false);
     drawAngle(_p, _p2, p3, exteriorAngle, 'blue', true);
+  } else if (selectedPoints.length === 4) {
+    var _selectedPoints5 = selectedPoints,
+      _selectedPoints6 = _slicedToArray(_selectedPoints5, 4),
+      _p3 = _selectedPoints6[0],
+      _p4 = _selectedPoints6[1],
+      _p5 = _selectedPoints6[2],
+      p4 = _selectedPoints6[3];
+
+    // Draw first line
+    var line1 = createSVGElement('line');
+    line1.setAttribute('x1', _p3.x);
+    line1.setAttribute('y1', _p3.y);
+    line1.setAttribute('x2', _p4.x);
+    line1.setAttribute('y2', _p4.y);
+    line1.setAttribute('stroke', 'blue');
+    line1.setAttribute('stroke-width', '6');
+    svg.appendChild(line1);
+
+    // Draw second line
+    var _line = createSVGElement('line');
+    _line.setAttribute('x1', _p5.x);
+    _line.setAttribute('y1', _p5.y);
+    _line.setAttribute('x2', p4.x);
+    _line.setAttribute('y2', p4.y);
+    _line.setAttribute('stroke', 'green');
+    _line.setAttribute('stroke-width', '6');
+    svg.appendChild(_line);
   }
 }
 function drawAngle(p1, p2, p3, angle, color, isExteriorAngle) {
@@ -567,7 +602,13 @@ updateButton.textContent = 'Update';
 updateButton.style.position = 'absolute';
 updateButton.style.right = '10px';
 updateButton.style.bottom = '10px';
-updateButton.addEventListener('click', saveAngle);
+updateButton.addEventListener('click', function (e) {
+  e.stopPropagation();
+  saveAngle();
+  saveMappingData();
+  updateButton.textContent = 'saved';
+  saveLocalData();
+});
 figure.appendChild(updateButton);
 function loadAngleFromButtonContent(content) {
   // Parse the content and load the angle
@@ -597,9 +638,10 @@ var angleData = Array(6).fill(null);
 function saveAngle() {
   if (selectedPoints.length == 0) {
     updateButtonLabel(selectedButton, 'none');
+    groups[selectedGroup].data["J".concat(selectedButton + 1)] = 'none';
     return;
-  } else if (selectedPoints.length !== 3) {
-    alert('Please select three points or coordinate positions to save an angle.');
+  } else if (selectedPoints.length < 3) {
+    alert('Please select at least three points or coordinate positions to save an angle.');
     return;
   }
   if (selectedButton === null) {
@@ -617,12 +659,13 @@ function saveAngle() {
     }
     return p.id;
   });
-  var angleDataString = newAngleData.map(function (p) {
+  var angleDataString; // = (button2D.classList.contains('active') ? '2D' : '3D') + ',';
+  angleDataString = newAngleData.map(function (p) {
     return _typeof(p) === 'object' ? p.id : p;
   }).join(',');
   if (groups.length > 0 && selectedGroup !== null) {
     // If groups exist and one is selected, save to the selected group
-    groups[selectedGroup].data["J".concat(selectedButton + 1)] = angleDataString;
+    groups[selectedGroup].data["J".concat(selectedButton + 1)].angles = angleDataString;
   } else {
     // If no groups exist or no group is selected, save to angleData
     angleData[selectedButton] = newAngleData;
@@ -645,6 +688,7 @@ function updateButtonLabel(index, angleData) {
   }
 }
 function selectAngleButton(index) {
+  updateButton.textContent = 'update';
   if (selectedButton !== null) {
     var prevButton = document.querySelector(".angleCard:nth-of-type(".concat(selectedButton + 1, ")"));
     prevButton.classList.remove('selected');
@@ -655,7 +699,7 @@ function selectAngleButton(index) {
   var currentAngleData;
   if (groups.length > 0 && selectedGroup !== null) {
     // If groups exist and one is selected, load from the selected group
-    currentAngleData = groups[selectedGroup].data["J".concat(index + 1)];
+    currentAngleData = groups[selectedGroup].data["J".concat(index + 1)].angles;
   } else {
     // If no groups exist or no group is selected, load from angleData
     currentAngleData = angleData[index];
@@ -678,6 +722,7 @@ function selectAngleButton(index) {
       clearFigure(); // Clear the figure if content is 'none'
     }
   }
+  updateMappingData(groups[selectedGroup].data["J".concat(index + 1)].mappingData);
 }
 function loadAngle(angleData) {
   selectedPoints = angleData.map(function (point) {
@@ -690,6 +735,7 @@ function loadAngle(angleData) {
       });
     }
   });
+  console.log(selectedPoints);
   updateAngle();
   highlightSelectedNodes();
 }
@@ -722,32 +768,104 @@ function clearFigure() {
 }
 document.getElementById('addGroupBtn').addEventListener('click', addGroup);
 window.groups = [];
-var selectedGroup = null;
+window.selectedGroup = null;
 window.groupNameSelected = 'default';
 document.addEventListener('DOMContentLoaded', function () {
+  initGroups();
+});
+
+// Define default values for each axis
+var defaultAxisValues = {
+  J1: {
+    PL: -90,
+    PR: 90,
+    AL: -110,
+    AR: 110,
+    PHL: -90,
+    PHR: 90,
+    AHL: -110,
+    AHR: 110
+  },
+  J2: {
+    PL: 0,
+    PR: 60,
+    AL: -50,
+    AR: 0,
+    PHL: 0,
+    PHR: 60,
+    AHL: -50,
+    AHR: 0
+  },
+  J3: {
+    PL: 0,
+    PR: 180,
+    AL: -80,
+    AR: 90,
+    PHL: 0,
+    PHR: 180,
+    AHL: -80,
+    AHR: 90
+  },
+  J4: {
+    PL: 0,
+    PR: 0,
+    AL: 0,
+    AR: 0,
+    PHL: 0,
+    PHR: 0,
+    AHL: 0,
+    AHR: 0
+  },
+  // J4 is always 0
+  J5: {
+    PL: 90,
+    PR: 180,
+    AL: -90,
+    AR: 0,
+    PHL: 90,
+    PHR: 180,
+    AHL: -90,
+    AHR: 0
+  },
+  J6: {
+    PL: 0,
+    PR: 0,
+    AL: 0,
+    AR: 0,
+    PHL: 0,
+    PHR: 0,
+    AHL: 0,
+    AHR: 0
+  } // J6 is always 0
+};
+var initGroups = function initGroups() {
   var defaultGroup = {
     name: 'default',
     data: {}
   };
-  var angleCards = document.querySelectorAll('.angleCard');
+  var angleCards = document.querySelectorAll('.angleCard.AC');
   angleCards.forEach(function (card, index) {
     var content = card.querySelector('.angleCard-content').textContent.trim();
-    defaultGroup.data["J".concat(index + 1)] = content;
+    defaultGroup.data["J".concat(index + 1)] = {
+      angles: content,
+      mappingData: _objectSpread({}, defaultAxisValues["J".concat(index + 1)])
+    };
   });
   groups.push(defaultGroup);
   updateGroups();
-});
+};
 function addGroup() {
   var name = document.getElementById('newGroupName').value.trim();
   if (name === '') {
     name = 'default';
   }
-
-  // Collect data from J1~J6
   var groupData = {};
   for (var _i = 1; _i <= 6; _i++) {
     var cardContent = document.querySelector(".angleCard:nth-of-type(".concat(_i, ") .angleCard-content")).textContent;
-    groupData["J".concat(_i)] = cardContent;
+    groupData["J".concat(_i)] = {
+      angles: cardContent,
+      mappingData: _objectSpread({}, defaultAxisValues["J".concat(_i)])
+    };
   }
   groups.push({
     name: name,
@@ -755,16 +873,14 @@ function addGroup() {
   });
   updateGroups();
   document.getElementById('newGroupName').value = '';
-  // Clear angleData when a group is added
-  angleData = Array(6).fill(null);
 }
-function updateGroups() {
+window.updateGroups = function () {
   var groupsContainer = document.getElementById('groups-container');
-  groupsContainer.innerHTML = ''; // Clear existing groups
+  groupsContainer.innerHTML = '';
   groups.forEach(function (group, index) {
     var card = document.createElement('div');
     card.className = 'angleCard group-card';
-    card.innerHTML = "\n            <div class=\"angleCard-label\">G".concat(index + 1, "</div>\n            <div class=\"angleCard-content\">").concat(group.name, "</div>\n            ").concat(index !== 0 ? '<span class="delete-group">X</span>' : '', "\n        ");
+    card.innerHTML = "\n        <div class=\"angleCard-label\">G".concat(index + 1, "</div>\n        <div class=\"angleCard-content\">").concat(group.name, "</div>\n        ").concat(index !== 0 ? '<span class="delete-group">X</span>' : '', "\n      ");
     card.addEventListener('click', function (e) {
       if (!e.target.classList.contains('delete-group')) {
         selectGroup(index);
@@ -772,70 +888,287 @@ function updateGroups() {
     });
     if (index !== 0) {
       var deleteBtn = card.querySelector('.delete-group');
+      var clickTimer = null;
+      var clickCount = 0;
       deleteBtn.addEventListener('click', function (e) {
         e.stopPropagation();
-        deleteGroup(index);
+        clickCount++;
+        if (clickCount === 1) {
+          clickTimer = setTimeout(function () {
+            if (clickCount === 1) {
+              // Single click
+              if (confirm("\u78BA\u5B9A\u8981\u522A\u9664\u7FA4\u7D44 \"".concat(group.name, "\" \u55CE\uFF1F"))) {
+                deleteGroup(index);
+              }
+            }
+            clickCount = 0;
+          }, 300); // Adjust this delay as needed
+        } else if (clickCount === 2) {
+          // Double click
+          clearTimeout(clickTimer);
+          deleteGroup(index);
+          clickCount = 0;
+        }
       });
     }
+    enableGroupNameEdit(card, index);
     groupsContainer.appendChild(card);
   });
-}
+  if (groups.length === 1) {
+    selectGroup(0);
+  } else {
+    selectGroup(selectedGroup);
+  }
+  saveLocalData();
+};
 function deleteGroup(index) {
   if (index === 0) {
-    alert("The default group cannot be deleted.");
+    alert("無法刪除預設群組。");
     return;
   }
-  if (confirm("Are you sure you want to delete group \"".concat(groups[index].name, "\"?"))) {
-    groups.splice(index, 1);
-    if (selectedGroup === index) {
-      selectedGroup = null;
-      // Load data from angleData
-      for (var _i2 = 1; _i2 <= 6; _i2++) {
-        var card = document.querySelector(".angleCard:nth-of-type(".concat(_i2, ")"));
-        var content = angleData[_i2 - 1] ? angleData[_i2 - 1].map(function (p) {
-          return _typeof(p) === 'object' ? p.id : p;
-        }).join(',') : 'none';
-        card.querySelector('.angleCard-content').textContent = content;
-      }
-    } else if (selectedGroup > index) {
-      selectedGroup--;
-    }
-    updateGroups();
-  }
-}
-function selectGroup(index) {
+  groups.splice(index, 1);
   if (selectedGroup === index) {
-    // If the same group is clicked again, deselect it
-    var groupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(index + 1, ")"));
-    groupCard.classList.remove('selected');
-    selectedGroup = null;
-    // Load data from angleData
-    for (var _i3 = 1; _i3 <= 6; _i3++) {
-      var card = document.querySelector(".angleCard:nth-of-type(".concat(_i3, ")"));
-      var content = angleData[_i3 - 1] ? angleData[_i3 - 1].map(function (p) {
-        return _typeof(p) === 'object' ? p.id : p;
-      }).join(',') : 'none';
+    selectedGroup--;
+  }
+  updateGroups();
+}
+window.selectGroup = function (index) {
+  if (selectedGroup !== null) {
+    var prevGroupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(selectedGroup + 1, ")"));
+    prevGroupCard.classList.remove('selected');
+  }
+  selectedGroup = index;
+  var group = groups[index];
+  var groupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(index + 1, ")"));
+  groupCard.classList.add('selected');
+  groupNameSelected = group.name;
+  if (group && group.data) {
+    for (var _i2 = 1; _i2 <= 6; _i2++) {
+      var card = document.querySelector(".angleCard:nth-of-type(".concat(_i2, ")"));
+      var content = group.data["J".concat(_i2)].angles || 'none';
       card.querySelector('.angleCard-content').textContent = content;
     }
-  } else {
-    // Deselect previously selected group
-    if (selectedGroup !== null) {
-      var prevGroupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(selectedGroup + 1, ")"));
-      prevGroupCard.classList.remove('selected');
-    }
-    selectedGroup = index;
-    var group = groups[index];
-    var _groupCard = document.querySelector("#groups-container .angleCard:nth-child(".concat(index + 1, ")"));
-    _groupCard.classList.add('selected');
-    groupNameSelected = group.name;
-    if (group && group.data) {
-      // Update J1~J6 angleCards with the group data
-      for (var _i4 = 1; _i4 <= 6; _i4++) {
-        var _card = document.querySelector(".angleCard:nth-of-type(".concat(_i4, ")"));
-        var _content = group.data["J".concat(_i4)] || 'none';
-        _card.querySelector('.angleCard-content').textContent = _content;
+    // Update mappingData for the selected joint (assuming we're working with J1)
+    updateMappingData(group.data.J1.mappingData);
+  }
+  selectAngleButton(0);
+};
+window.updateMappingData = function (data) {
+  if (!data) return;
+  postureSlider.setBounds(data.PL, data.PR);
+  postureSlider.setValues([data.PHL, data.PHR]);
+  armSlider.setBounds(data.AL, data.AR);
+  armSlider.setValues([data.AHL, data.AHR]);
+};
+window.saveMappingData = function () {
+  if (selectedGroup === null || !groups[selectedGroup]) return;
+  var currentJoint = "J".concat(selectedButton + 1);
+  var currentData = groups[selectedGroup].data[currentJoint].mappingData;
+  currentData.PL = postureSlider.leftBound;
+  currentData.PR = postureSlider.rightBound;
+  currentData.AL = armSlider.leftBound;
+  currentData.AR = armSlider.rightBound;
+  currentData.PHL = postureSlider.output[0];
+  currentData.PHR = postureSlider.output[1];
+  currentData.AHL = armSlider.output[0];
+  currentData.AHR = armSlider.output[1];
+  console.log("Mapping data saved for ".concat(currentJoint, " in group ").concat(selectedGroup));
+};
+window.resetMappingData = function () {
+  if (selectedGroup === null || !groups[selectedGroup]) return;
+  var currentJoint = "J".concat(selectedButton + 1);
+  var currentData = groups[selectedGroup].data[currentJoint].mappingData;
+  Object.assign(currentData, defaultAxisValues.posture, defaultAxisValues.arm);
+  updateSliders(currentData);
+  console.log("Mapping data reset to default for ".concat(currentJoint, " in group ").concat(selectedGroup));
+};
+function enableGroupNameEdit(card, groupIndex) {
+  var contentDiv = card.querySelector('.angleCard-content');
+  card.addEventListener('dblclick', function (e) {
+    if (e.target === contentDiv) {
+      var currentName = contentDiv.textContent;
+      var input = document.createElement('input');
+      input.value = currentName;
+      input.className = 'edit-group-name';
+      input.style.width = '100%';
+      input.style.boxSizing = 'border-box';
+      input.style.padding = '8px 8px 8px 0';
+      input.style.border = 'none';
+      input.style.backgroundColor = 'transparent';
+      input.style.font = 'inherit';
+      contentDiv.textContent = '';
+      contentDiv.appendChild(input);
+      input.focus();
+      input.addEventListener('blur', finishEdit);
+      input.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          finishEdit();
+        }
+      });
+      function finishEdit() {
+        var newName = input.value.trim() || 'default';
+        groups[groupIndex].name = newName;
+        contentDiv.textContent = newName;
+        updateGroups();
       }
     }
+  });
+}
+var NumericRangeSlider = /*#__PURE__*/function () {
+  function NumericRangeSlider(container, options) {
+    _classCallCheck(this, NumericRangeSlider);
+    this.container = document.getElementById(container);
+    this.leftInput = this.container.previousElementSibling;
+    this.rightInput = this.container.nextElementSibling;
+    this.leftBound = options.leftBound;
+    this.rightBound = options.rightBound;
+    this.values = options.values || [this.leftBound, this.rightBound];
+    this.step = options.step || 1;
+    this.onChange = options.onChange || function () {};
+    this.dragging = null;
+    this.output = options.values || [this.leftBound, this.rightBound];
+    this.init();
+  }
+  return _createClass(NumericRangeSlider, [{
+    key: "init",
+    value: function init() {
+      var _this = this;
+      this.range = document.createElement('div');
+      this.range.className = 'slider-range';
+      this.container.appendChild(this.range);
+      this.handles = this.values.map(function (value, index) {
+        var handle = document.createElement('div');
+        handle.className = 'slider-handle';
+        handle.setAttribute('data-index', index);
+        var label = document.createElement('div');
+        label.className = 'slider-label';
+        handle.appendChild(label);
+        _this.container.appendChild(handle);
+        handle.addEventListener('mousedown', _this.startDragging.bind(_this));
+        return handle;
+      });
+      this.leftInput.addEventListener('change', this.updateFromInput.bind(this));
+      this.rightInput.addEventListener('change', this.updateFromInput.bind(this));
+      this.updateHandles();
+    }
+  }, {
+    key: "startDragging",
+    value: function startDragging(e) {
+      e.preventDefault();
+      this.dragging = parseInt(e.target.getAttribute('data-index'));
+      document.addEventListener('mousemove', this.drag.bind(this));
+      document.addEventListener('mouseup', this.stopDragging.bind(this));
+    }
+  }, {
+    key: "stopDragging",
+    value: function stopDragging() {
+      this.dragging = null;
+      document.removeEventListener('mousemove', this.drag.bind(this));
+      document.removeEventListener('mouseup', this.stopDragging.bind(this));
+    }
+  }, {
+    key: "drag",
+    value: function drag(e) {
+      if (this.dragging === null) return;
+      var rect = this.container.getBoundingClientRect();
+      var position = (e.clientX - rect.left) / rect.width;
+      position = Math.max(0, Math.min(1, position));
+      var value = this.leftBound + (this.rightBound - this.leftBound) * position;
+      var snappedValue = Math.round(value / this.step) * this.step;
+      if (this.leftBound <= this.rightBound) this.values[this.dragging] = Math.max(this.leftBound, Math.min(this.rightBound, snappedValue));else this.values[this.dragging] = Math.max(this.rightBound, Math.min(this.leftBound, snappedValue));
+      this.updateHandles();
+      this.onChange(this.values);
+    }
+  }, {
+    key: "updateFromInput",
+    value: function updateFromInput() {
+      var leftOrigin = this.leftBound;
+      var rightOrigin = this.rightBound;
+      this.leftBound = parseFloat(this.leftInput.value);
+      this.rightBound = parseFloat(this.rightInput.value);
+      if ((rightOrigin - leftOrigin) * (this.rightBound - this.leftBound) < 0) this.values = [this.leftBound, this.rightBound];else {
+        var minor, major;
+        if (this.leftBound <= this.rightBound) {
+          minor = this.leftBound;
+          major = this.rightBound;
+        } else {
+          minor = this.rightBound;
+          major = this.leftBound;
+        }
+        if (this.values[0] < minor) this.values[0] = minor;
+        if (this.values[0] > major) this.values[0] = major;
+        if (this.values[1] < minor) this.values[1] = minor;
+        if (this.values[1] > major) this.values[1] = major;
+      }
+      this.updateHandles();
+      this.onChange(this.values);
+    }
+  }, {
+    key: "updateHandles",
+    value: function updateHandles() {
+      var _this2 = this;
+      var leftPosition = (this.values[0] - this.leftBound) / (this.rightBound - this.leftBound);
+      var rightPosition = (this.values[1] - this.leftBound) / (this.rightBound - this.leftBound);
+      this.handles.forEach(function (handle, index) {
+        var position = index === 0 ? leftPosition : rightPosition;
+        handle.style.left = "".concat(position * 100, "%");
+        handle.querySelector('.slider-label').textContent = _this2.values[index];
+      });
+      this.range.style.left = "".concat(Math.min(leftPosition, rightPosition) * 100, "%");
+      this.range.style.right = "".concat((1 - Math.max(leftPosition, rightPosition)) * 100, "%");
+      if (this.values[0] > this.values[1] && this.leftBound <= this.rightBound || this.values[0] <= this.values[1] && this.leftBound > this.rightBound) this.output = [this.values[1], this.values[0]];else this.output = this.values;
+      // console.log(this.output);
+    }
+  }, {
+    key: "setBounds",
+    value: function setBounds(left, right) {
+      this.leftBound = left;
+      this.rightBound = right;
+      this.leftInput.value = left;
+      this.rightInput.value = right;
+      this.updateHandles();
+    }
+  }, {
+    key: "setValues",
+    value: function setValues(values) {
+      var _this3 = this;
+      this.values = values.map(function (value) {
+        return Math.max(Math.min(_this3.leftBound, _this3.rightBound), Math.min(Math.max(_this3.leftBound, _this3.rightBound), value));
+      });
+      this.updateHandles();
+    }
+  }]);
+}(); // Initialize sliders
+var postureSlider = new NumericRangeSlider('postureSlider', {
+  leftBound: 0,
+  rightBound: 360,
+  values: [0, 360],
+  step: 1
+});
+var armSlider = new NumericRangeSlider('armSlider', {
+  leftBound: 0,
+  rightBound: 360,
+  values: [0, 360],
+  step: 1
+});
+var buttonSlider = document.querySelector('.button-23d-slider');
+var button2D = document.getElementById('button2D');
+var button3D = document.getElementById('button3D');
+function toggleButton(e, button) {
+  e.stopPropagation();
+  if (!button.classList.contains('active')) {
+    button2D.classList.toggle('active');
+    button3D.classList.toggle('active');
+    buttonSlider.style.transform = button === button2D ? 'translateY(0)' : 'translateY(40px)';
   }
 }
+button2D.addEventListener('click', function (e) {
+  return toggleButton(e, button2D);
+});
+button3D.addEventListener('click', function (e) {
+  return toggleButton(e, button3D);
+});
+
+// Set initial state to 3D
+buttonSlider.style.transform = 'translateY(40px)';
 },{}]},{},["EwPg"], null)
