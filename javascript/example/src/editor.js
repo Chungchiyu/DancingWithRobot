@@ -16,6 +16,7 @@ editor.addEventListener('scroll', () => {
 });
 
 showEditorBtn.addEventListener('click', () => {
+    updateEditorWithJointsData(window.jointsData);
     editorContainer.classList.add('expanded');
     showEditorBtn.style.display = 'none';
 });
@@ -107,6 +108,44 @@ function stopResize() {
 }
 
 updateLineNumbers();
+
+function updateEditorWithJointsData(jointsData) {
+    if (jointsData.length > 0) {
+        const formattedData = jointsData.map((frame, index) => {
+            const angles = [
+                frame.angles.J1 || 0,
+                frame.angles.J2 || 0,
+                frame.angles.J3 || 0,
+                frame.angles.J4 || 0,
+                frame.angles.J5 || 0,
+                frame.angles.J6 || 0
+            ];
+
+            const point = `E6AXIS P${index}={A1 ${angles[0]},A2 ${angles[1]},A3 ${angles[2]},A4 ${angles[3]},A5 ${angles[4]},A6 ${angles[5]}}\n`;
+            const run = `PTP P${index} CONT=60% Vel=100% Acc=100%`;
+            return point + run
+        }).join('\n');
+
+        editor.value = formattedData;
+        updateLineNumbers();
+    }
+}
+
+function setupJointsDataProxy() {
+    const handler = {
+        set(target, property, value) {
+            target[property] = value;
+            if (Array.isArray(target)) {
+                updateEditorWithJointsData(target);
+            }
+            return true;
+        }
+    };
+
+    window.jointsData = new Proxy(window.jointsData || [], handler);
+}
+
+window.addEventListener('load', setupJointsDataProxy);
 
 function exportAndDownload() {
     const jsonData = { groups, jointsData };

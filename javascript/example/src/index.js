@@ -27,13 +27,13 @@ const elements = {
     animToggle: document.getElementById('do-animate'),
     isLoop: document.getElementById('is-loop'),
     cardContainer: document.getElementById('poseCard-container'),
-    video: document.getElementById('video'),
     progressContainer: document.getElementById('progress-container'),
     copyBtn: document.querySelector(".copyBtn"),
     refreshBtn: document.querySelector('.refreshBtn'),
     clearBtn: document.querySelector(".clearBtn"),
     homeBtn: document.querySelector('.homeBtn'),
-    fixCamBtn: document.querySelector('.fixCamBtn')
+    fixCamBtn: document.querySelector('.fixCamBtn'),
+    waitBtn: document.querySelector('.waitBtn')
 };
 
 // Constants
@@ -198,7 +198,7 @@ const updateArmPosition = () => {
 
     for (let i = 0; i < window.jointsData.length - 1; i++) {
         if (currentTime >= window.jointsData[i].time && currentTime < window.jointsData[i + 1].time) {
-            highlightCard(elements.cardContainer.childNodes[i]);
+            highlightCard(elements.cardContainer.childNodes[i], false);
             const t1 = window.jointsData[i].time;
             const t2 = window.jointsData[i + 1].time;
             const a1 = window.jointsData[i].angles;
@@ -222,14 +222,16 @@ const updateArmPosition = () => {
         }
     }
 
-    if (currentTime > window.jointsData[window.jointsData.length - 1].time) {
-        highlightCard(elements.cardContainer.childNodes[window.jointsData.length - 1]);
-        if (state.loop) {
-            elements.video.currentTime = window.jointsData[0].time;
-            state.startTime = Date.now() - elements.video.currentTime * 1e3;
-        } else {
-            elements.animToggle.classList.toggle('checked');
-            elements.video.pause();
+    if (window.jointsData.length > 0) {
+        if (currentTime > window.jointsData[window.jointsData.length - 1].time) {
+            highlightCard(elements.cardContainer.childNodes[window.jointsData.length - 1], false);
+            if (state.loop) {
+                video.currentTime = window.jointsData[0].time;
+                state.startTime = Date.now() - video.currentTime * 1e3;
+            } else {
+                elements.animToggle.classList.toggle('checked');
+                video.pause();
+            }
         }
     }
 };
@@ -295,11 +297,11 @@ document.addEventListener('WebComponentsReady', () => {
     elements.animToggle.addEventListener('click', () => {
         elements.animToggle.classList.toggle('checked');
         if (elements.animToggle.classList.contains('checked')) {
-            state.startTime = Date.now() - elements.video.currentTime * 1e3;
-            elements.video.play();
+            state.startTime = Date.now() - video.currentTime * 1e3;
+            video.play();
             window.linkRobot.classList.remove('checked');
         } else {
-            elements.video.pause();
+            video.pause();
         }
     });
 
@@ -377,12 +379,12 @@ function updateJointsData(index, updates) {
 }
 
 function swapCardsWithAnimation(oldIndex, newIndex) {
-    const cards = Array.from(elements.cardContainer.children);
+    const cards = elements.cardContainer.children;
     const card = cards[oldIndex];
 
     // If the card position hasn't changed, no animation is needed
     if (oldIndex === newIndex) {
-        updateCardContent(card, window.jointsData[oldIndex], oldIndex);
+        updateCardContent(card, window.jointsData[oldIndex], oldIndex, false);
         return;
     }
 
@@ -400,10 +402,19 @@ function swapCardsWithAnimation(oldIndex, newIndex) {
     const displacement = (newIndex - oldIndex) * card.offsetHeight;
     card.style.transform = `translateY(${displacement}px)`;
 
+    console.log(oldIndex, newIndex);
+
     // Reorder DOM after animation ends
     setTimeout(() => {
         card.style.transition = 'none';
         card.style.transform = '';
+
+        // Insert the card at the new position
+        if (newIndex >= elements.cardContainer.children.length-1) {
+            elements.cardContainer.appendChild(card);
+        } else {
+            elements.cardContainer.insertBefore(card,cards[newIndex]);
+        }
 
         // Update all card contents
         updateAllCardContents();
@@ -457,6 +468,10 @@ const addFrameCard = (index) => {
         // console.log(window.jointsData);
     });
 
+    card.querySelector('input').addEventListener('click', (event) => {
+        event.target.select();
+    });
+
     card.querySelector('input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             const newTime = parseFloat(event.target.value);
@@ -503,10 +518,11 @@ const updateCardNumbers = () => {
     });
 };
 
-const highlightCard = (card) => {
+const highlightCard = (card, updateVidTime = true) => {
     const index = Array.from(card.parentNode.children).indexOf(card);
     const cardData = window.jointsData[index];
-    elements.video.currentTime = parseFloat(card.querySelector('input').value);
+    if (updateVidTime)
+        video.currentTime = parseFloat(card.querySelector('input').value);
     Object.entries(cardData.angles).forEach(([joint, angle]) => {
         const joint_name = joint.replace('J', 'joint_');
         viewer.setJointValue(joint_name, angle * DEG2RAD);
