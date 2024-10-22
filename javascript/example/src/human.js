@@ -196,6 +196,9 @@ function drawCoordinateSystem(x, y) {
             const endY = parseFloat(line.getAttribute('y2'));
             const virtualPoint = { x: endX, y: endY, id: labels[index] };
             selectNode(virtualPoint, { classList: { add: () => { }, remove: () => { } } });
+
+            toggleButton(button3D);
+            button2D.disabled = true;
         });
 
         svg.appendChild(line);
@@ -334,12 +337,7 @@ for (let i = 0; i < 6; i++) {
     const button = document.querySelectorAll('.angleCard');
     button[i].addEventListener('click', (e) => {
         e.stopPropagation();
-        if (button[i].classList.contains('selected')) {
-            button[i].classList.remove('selected');
-            // showAllAngle();
-        }
-        else
-            selectAngleButton(i);
+        selectAngleButton(i);
     });
 }
 
@@ -354,7 +352,8 @@ updateButton.addEventListener('click', (e) => {
     saveAngle();
     saveMappingData();
     updateButton.textContent = 'saved';
-    saveLocalData();
+    groups[selectedGroup].data[`J${selectedButton + 1}`].is3D = is3D;
+    window.saveLocalData();
 });
 figure.appendChild(updateButton);
 
@@ -379,7 +378,7 @@ let angleData = Array(6).fill(null);
 function saveAngle() {
     if (selectedPoints.length == 0) {
         updateButtonLabel(selectedButton, 'none');
-        groups[selectedGroup].data[`J${selectedButton + 1}`] = 'none';
+        groups[selectedGroup].data[`J${selectedButton + 1}`].angles = 'none';
         return;
     } else if (selectedPoints.length < 3) {
         alert('Please select at least three points or coordinate positions to save an angle.');
@@ -441,12 +440,15 @@ function selectAngleButton(index) {
         currentAngleData = groups[selectedGroup].data[`J${index + 1}`].angles;
     } else {
         // If no groups exist or no group is selected, load from angleData
-        currentAngleData = angleData[index];
+        currentAngleData = angleData[index].angles;
     }
 
     if (currentAngleData) {
         if (typeof currentAngleData === 'string') {
-            loadAngleFromButtonContent(currentAngleData);
+            if (currentAngleData == 'none')
+                clearFigure();
+            else
+                loadAngleFromButtonContent(currentAngleData);
         } else if (Array.isArray(currentAngleData)) {
             loadAngle(currentAngleData);
         } else {
@@ -464,6 +466,10 @@ function selectAngleButton(index) {
     }
 
     updateMappingData(groups[selectedGroup].data[`J${index + 1}`].mappingData);
+    updateIs3D();
+
+    if (['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> currentAngleData.includes(r)))
+        button2D.disabled = true;
 }
 
 function loadAngle(angleData) {
@@ -487,6 +493,7 @@ function highlightSelectedNodes() {
     });
     // Highlight selected nodes
     selectedPoints.forEach(point => {
+        if (!point) return;
         if (typeof point.id === 'number') {
             document.getElementById(point.id).classList.add('selected');
         }
@@ -507,6 +514,8 @@ function clearFigure() {
     selectedCoordinateLine = null;
     showCoordinateSystem = false;
     updateAngle();
+
+    toggleButton(button2D);
 }
 
 document.getElementById('addGroupBtn').addEventListener('click', addGroup);
@@ -536,7 +545,8 @@ const initGroups = () => {
         const content = card.querySelector('.angleCard-content').textContent.trim();
         defaultGroup.data[`J${index + 1}`] = {
             angles: content,
-            mappingData: { ...defaultAxisValues[`J${index + 1}`] }
+            mappingData: { ...defaultAxisValues[`J${index + 1}`] },
+            is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> content.includes(r))
         };
     });
     groups.push(defaultGroup);
@@ -554,7 +564,8 @@ function addGroup() {
         const cardContent = document.querySelector(`.angleCard:nth-of-type(${i}) .angleCard-content`).textContent;
         groupData[`J${i}`] = {
             angles: cardContent,
-            mappingData: { ...defaultAxisValues[`J${i}`] }
+            mappingData: { ...defaultAxisValues[`J${i}`] },
+            is3D: false
         };
     }
 
@@ -618,7 +629,7 @@ window.updateGroups = function () {
         selectGroup(selectedGroup);
     }
 
-    saveLocalData();
+    window.saveLocalData();
 }
 
 function deleteGroup(index) {
@@ -890,17 +901,40 @@ const buttonSlider = document.querySelector('.button-23d-slider');
 const button2D = document.getElementById('button2D');
 const button3D = document.getElementById('button3D');
 
-function toggleButton(e, button) {
-    e.stopPropagation();
+let is3D = false;
+
+function toggleButton(button) {
     if (!button.classList.contains('active')) {
         button2D.classList.toggle('active');
         button3D.classList.toggle('active');
         buttonSlider.style.transform = button === button2D ? 'translateY(0)' : 'translateY(40px)';
+        is3D = button === button3D;
     }
+    if (button === button2D)
+        button2D.disabled = false;
 }
 
-button2D.addEventListener('click', (e) => toggleButton(e, button2D));
-button3D.addEventListener('click', (e) => toggleButton(e, button3D));
+function updateIs3D() {
+    const is3D = groups[selectedGroup].data[`J${selectedButton + 1}`].is3D;
+    buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
+    if (!is3D) {
+        button2D.classList.add('active');
+        button3D.classList.remove('active');
+    } else {
+        button2D.classList.remove('active');
+        button3D.classList.add('active');
+    }
+    button2D.disabled = false;
+}
+
+button2D.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleButton(button2D);
+});
+button3D.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleButton(button3D);
+});
 
 // Set initial state to 3D
-buttonSlider.style.transform = 'translateY(40px)';
+// buttonSlider.style.transform = 'translateY(40px)';

@@ -61,6 +61,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
+    "ammo.js": "^0.0.10",
     "htmlnano": "^2.1.1",
     "math.js": "^1.1.46",
     "mathjs": "^13.1.1",

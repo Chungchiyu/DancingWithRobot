@@ -47805,6 +47805,8 @@ var emptyRaycast = function emptyRaycast() {};
 // ignore-limits-change: Fires when the 'ignore-limits' attribute changes
 // angle-change: Fires when an angle changes
 var URDFViewer = exports.default = /*#__PURE__*/function (_HTMLElement) {
+  // Nickchung changed
+
   /* Lifecycle Functions */
   function URDFViewer() {
     var _this;
@@ -48020,6 +48022,13 @@ var URDFViewer = exports.default = /*#__PURE__*/function (_HTMLElement) {
     },
     set: function set(v) {
       this.jointValues = v;
+    }
+
+    // Nickchung changed
+  }, {
+    key: "getControls",
+    get: function get() {
+      return this.controls;
     }
   }, {
     key: "connectedCallback",
@@ -52155,6 +52164,12 @@ var _sortablejs = _interopRequireWildcard(require("sortablejs"));
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
 function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
@@ -52163,75 +52178,73 @@ function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" !=
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; } /* globals */
 _sortablejs.default.mount(new _sortablejs.Swap());
 customElements.define('urdf-viewer', _urdfManipulatorElement.default);
-
-// declare these globally for the sake of the example.
-// Hack to make the build work with webpack for now.
-// TODO: Remove this once modules or parcel is being used
 window.viewer = document.querySelector('urdf-viewer');
-var limitsToggle = document.getElementById('ignore-joint-limits');
-var collisionToggle = document.getElementById('collision-toggle');
-var radiansToggle = document.getElementById('radians-toggle');
-var upSelect = document.getElementById('up-select');
-var sliderList = document.querySelector('#controls ul');
-var controlsel = document.getElementById('controls');
-var controlsToggle = document.getElementById('toggle-controls');
-var animToggle = document.getElementById('do-animate');
+
+// Cache DOM elements
+var elements = {
+  limitsToggle: document.getElementById('ignore-joint-limits'),
+  collisionToggle: document.getElementById('collision-toggle'),
+  radiansToggle: document.getElementById('radians-toggle'),
+  upSelect: document.getElementById('up-select'),
+  sliderList: document.querySelector('#controls ul'),
+  controlsel: document.getElementById('controls'),
+  controlsToggle: document.getElementById('toggle-controls'),
+  animToggle: document.getElementById('do-animate'),
+  isLoop: document.getElementById('is-loop'),
+  cardContainer: document.getElementById('poseCard-container'),
+  progressContainer: document.getElementById('progress-container'),
+  copyBtn: document.querySelector(".copyBtn"),
+  refreshBtn: document.querySelector('.refreshBtn'),
+  clearBtn: document.querySelector(".clearBtn"),
+  homeBtn: document.querySelector('.homeBtn'),
+  fixCamBtn: document.querySelector('.fixCamBtn'),
+  waitBtn: document.querySelector('.waitBtn')
+};
+
+// Constants
 var DEG2RAD = Math.PI / 180;
 var RAD2DEG = 1 / DEG2RAD;
-var isLoop = document.getElementById('is-loop');
-var loop = false;
-var sliders = {};
 
-// Global Functions
+// State management
+var state = {
+  loop: false,
+  sliders: {},
+  jointsDataSet: [],
+  startTime: 0,
+  originalNoAutoRecenter: null
+};
+
+// Helper functions
 var setColor = function setColor(color) {
   document.body.style.backgroundColor = color;
   viewer.highlightColor = '#' + new THREE.Color(0xE05749).lerp(new THREE.Color(color), 0.35).getHexString();
 };
+var capture = function capture() {
+  viewer.renderer.render(viewer.scene, viewer.camera);
+  return viewer.renderer.domElement.toDataURL();
+};
 
-// Events
-// toggle checkbox
-// limitsToggle.addEventListener('click', () => {
-//     limitsToggle.classList.toggle('checked');
-//     viewer.ignoreLimits = limitsToggle.classList.contains('checked');
-// });
-
-// radiansToggle.addEventListener('click', () => {
-//     radiansToggle.classList.toggle('checked');
-//     Object
-//         .values(sliders)
-//         .forEach(sl => sl.update());
-// });
-
-// collisionToggle.addEventListener('click', () => {
-//     collisionToggle.classList.toggle('checked');
-//     viewer.showCollision = collisionToggle.classList.contains('checked');
-// });
-
-isLoop.addEventListener('click', function () {
-  isLoop.classList.toggle('checked');
-  if (isLoop.classList.contains('checked')) loop = true;else loop = false;
+// Event listeners
+elements.isLoop.addEventListener('click', function () {
+  elements.isLoop.classList.toggle('checked');
+  state.loop = elements.isLoop.classList.contains('checked');
 });
-upSelect.addEventListener('change', function () {
-  return viewer.up = upSelect.value;
+elements.controlsToggle.addEventListener('click', function () {
+  return elements.controlsel.classList.toggle('hidden');
 });
-controlsToggle.addEventListener('click', function () {
-  return controlsel.classList.toggle('hidden');
-});
-
-// watch for urdf changes
 viewer.addEventListener('urdf-change', function () {
-  Object.values(sliders).forEach(function (sl) {
+  Object.values(state.sliders).forEach(function (sl) {
     return sl.remove();
   });
-  sliders = {};
+  state.sliders = {};
 });
 viewer.addEventListener('ignore-limits-change', function () {
-  Object.values(sliders).forEach(function (sl) {
+  Object.values(state.sliders).forEach(function (sl) {
     return sl.update();
   });
 });
 viewer.addEventListener('angle-change', function (e) {
-  if (sliders[e.detail]) sliders[e.detail].update();
+  if (state.sliders[e.detail]) state.sliders[e.detail].update();
 });
 viewer.addEventListener('joint-mouseover', function (e) {
   var j = document.querySelector("li[joint-name=\"".concat(e.detail, "\"]"));
@@ -52241,7 +52254,6 @@ viewer.addEventListener('joint-mouseout', function (e) {
   var j = document.querySelector("li[joint-name=\"".concat(e.detail, "\"]"));
   if (j) j.removeAttribute('robot-hovered');
 });
-var originalNoAutoRecenter;
 viewer.addEventListener('manipulate-start', function (e) {
   var j = document.querySelector("li[joint-name=\"".concat(e.detail, "\"]"));
   if (j) {
@@ -52250,14 +52262,12 @@ viewer.addEventListener('manipulate-start', function (e) {
     });
     window.scrollTo(0, 0);
   }
-  originalNoAutoRecenter = viewer.noAutoRecenter;
+  state.originalNoAutoRecenter = viewer.noAutoRecenter;
   viewer.noAutoRecenter = true;
 });
-viewer.addEventListener('manipulate-end', function (e) {
-  viewer.noAutoRecenter = originalNoAutoRecenter;
+viewer.addEventListener('manipulate-end', function () {
+  viewer.noAutoRecenter = state.originalNoAutoRecenter;
 });
-
-// create the sliders
 viewer.addEventListener('urdf-processed', function () {
   var r = viewer.robot;
   Object.keys(r.joints).sort(function (a, b) {
@@ -52278,16 +52288,13 @@ viewer.addEventListener('urdf-processed', function () {
     return r.joints[key];
   }).forEach(function (joint) {
     var li = document.createElement('li');
-    li.innerHTML = "\n            <span title=\"".concat(joint.name, "\">").concat(joint.name, "</span>\n            <input type=\"range\" value=\"0\"/>\n            <input type=\"number\"/>\n            ");
+    li.innerHTML = "\n        <span title=\"".concat(joint.name, "\">").concat(joint.name, "</span>\n        <input type=\"range\" value=\"0\" step=\"0.0001\"/>\n        <input type=\"number\" step=\"0.1\" />\n      ");
     li.setAttribute('joint-type', joint.jointType);
     li.setAttribute('joint-name', joint.name);
-    sliderList.appendChild(li);
-
-    // update the joint display
+    elements.sliderList.appendChild(li);
     var slider = li.querySelector('input[type="range"]');
     var input = li.querySelector('input[type="number"]');
     li.update = function () {
-      // const degMultiplier = radiansToggle.classList.contains('checked') ? 1.0 : RAD2DEG;
       var degMultiplier = RAD2DEG;
       var angle = joint.angle;
       if (joint.jointType === 'revolute' || joint.jointType === 'continuous') {
@@ -52299,8 +52306,6 @@ viewer.addEventListener('urdf-processed', function () {
         angle = angle.toPrecision(2);
       }
       input.value = parseFloat(angle);
-
-      // directly input the value
       slider.value = joint.angle;
       if (viewer.ignoreLimits || joint.jointType === 'continuous') {
         slider.min = -6.28;
@@ -52314,32 +52319,73 @@ viewer.addEventListener('urdf-processed', function () {
         input.max = joint.limit.upper * degMultiplier;
       }
     };
-    switch (joint.jointType) {
-      case 'continuous':
-      case 'prismatic':
-      case 'revolute':
-        break;
-      default:
-        li.update = function () {};
-        input.remove();
-        slider.remove();
+    if (!['continuous', 'prismatic', 'revolute'].includes(joint.jointType)) {
+      li.update = function () {};
+      input.remove();
+      slider.remove();
     }
     slider.addEventListener('input', function () {
       viewer.setJointValue(joint.name, slider.value);
-      animToggle.classList.remove('checked');
+      elements.animToggle.classList.remove('checked');
       li.update();
     });
     input.addEventListener('change', function () {
-      // const degMultiplier = radiansToggle.classList.contains('checked') ? 1.0 : RAD2DEG;
-      var degMultiplier = RAD2DEG;
-      viewer.setJointValue(joint.name, input.value * degMultiplier);
-      animToggle.classList.remove('checked');
+      viewer.setJointValue(joint.name, input.value * DEG2RAD);
+      elements.animToggle.classList.remove('checked');
       li.update();
     });
     li.update();
-    sliders[joint.name] = li;
+    state.sliders[joint.name] = li;
   });
 });
+
+// Animation functions
+var updateArmPosition = function updateArmPosition() {
+  var currentTime = (Date.now() - state.startTime) / 1e3;
+  console.log(currentTime);
+  for (var i = 0; i < window.jointsData.length - 1; i++) {
+    if (currentTime >= window.jointsData[i].time && currentTime < window.jointsData[i + 1].time) {
+      highlightCard(elements.cardContainer.childNodes[i], false);
+      var t1 = window.jointsData[i].time;
+      var t2 = window.jointsData[i + 1].time;
+      var a1 = window.jointsData[i].angles;
+      var a2 = window.jointsData[i + 1].angles;
+      var interpolatedAngles = {};
+      for (var jointName in a1) {
+        if (a2.hasOwnProperty(jointName)) {
+          var angle1 = a1[jointName];
+          var angle2 = a2[jointName];
+          interpolatedAngles[jointName] = angle1 + (angle2 - angle1) * (currentTime - t1) / (t2 - t1);
+        }
+      }
+      for (var _jointName in interpolatedAngles) {
+        var joint_name = _jointName.replace('J', 'joint_');
+        viewer.setJointValue(joint_name, interpolatedAngles[_jointName] * DEG2RAD);
+      }
+      break;
+    }
+  }
+  if (window.jointsData.length > 0) {
+    if (currentTime > window.jointsData[window.jointsData.length - 1].time) {
+      highlightCard(elements.cardContainer.childNodes[window.jointsData.length - 1], false);
+      if (state.loop) {
+        video.currentTime = window.jointsData[0].time;
+        state.startTime = Date.now() - video.currentTime * 1e3;
+      } else {
+        elements.animToggle.classList.toggle('checked');
+        video.pause();
+      }
+    }
+  }
+};
+var _updateLoop = function updateLoop() {
+  if (elements.animToggle.classList.contains('checked')) {
+    updateArmPosition();
+  }
+  requestAnimationFrame(_updateLoop);
+};
+
+// Initialize
 document.addEventListener('WebComponentsReady', function () {
   viewer.loadMeshFunc = function (path, manager, done) {
     var ext = path.split(/\./g).pop().toLowerCase();
@@ -52381,273 +52427,481 @@ document.addEventListener('WebComponentsReady', function () {
   if (/javascript\/example\/bundle/i.test(window.location)) {
     viewer.package = '../../../urdf';
   }
-
-  // registerDragEvents(viewer, () => {
-  //     setColor('#263238');
-  //     animToggle.classList.remove('checked');
-  //     updateList();
-  // });
+  elements.animToggle.addEventListener('click', function () {
+    elements.animToggle.classList.toggle('checked');
+    if (elements.animToggle.classList.contains('checked')) {
+      state.startTime = Date.now() - video.currentTime * 1e3;
+      video.play();
+      window.linkRobot.classList.remove('checked');
+    } else {
+      video.pause();
+    }
+  });
+  viewer.addEventListener('manipulate-start', function () {
+    return elements.animToggle.classList.remove('checked');
+  });
+  viewer.addEventListener('urdf-processed', updateArmPosition);
+  _updateLoop();
+  viewer.camera.position.set(0, 1, -2.5);
+  viewer.noAutoRecenter = true;
 });
-document.addEventListener('jointsDataChanged', function () {
-  newCard();
-});
-window.newCard = function () {
-  var _this = this;
-  // let jointAngles = Object.keys(viewer.robot.joints)
-  //     .slice(0, 6)
-  //     .map(key => {
-  //         let angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
-  //         let formattedAngle = angleInDegrees.toFixed(1);
-  //         return formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : formattedAngle;
-  //     });
 
-  var img = capture();
-  var cardContainer = document.getElementById('poseCard-container');
+// Update card content function
+function updateCardContent(card, data, index) {
+  var updateImg = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
+  // console.log(data);
+  card.querySelector('.angles').innerHTML = Object.entries(data.angles).map(function (_ref) {
+    var _ref2 = _slicedToArray(_ref, 2),
+      joint = _ref2[0],
+      angle = _ref2[1];
+    return "<div>".concat(angle == null ? 'NAN' : angle.toFixed(1), "</div>");
+  }).join('');
+  if (updateImg) card.querySelector('img').src = captureRobotImage(data.angles);
+  card.querySelector('.number').textContent = index + 1;
+  card.querySelector('#group-card').textContent = data.group;
+  card.querySelector('input').value = data.time;
+}
+var captureRobotImage = function captureRobotImage(angles) {
+  Object.entries(angles).forEach(function (_ref3) {
+    var _ref4 = _slicedToArray(_ref3, 2),
+      joint = _ref4[0],
+      angle = _ref4[1];
+    var joint_name = joint.replace('J', 'joint_');
+    viewer.setJointValue(joint_name, angle * DEG2RAD);
+  });
+  return capture();
+};
+window.updateMarkers = function () {
+  // Remove all existing markers
+  var existingMarkers = progressContainer.querySelectorAll('.progress-marker');
+  existingMarkers.forEach(function (marker) {
+    return marker.remove();
+  });
+
+  // Add new markers based on the current order of cards
+  var cards = Array.from(elements.cardContainer.children);
+  cards.forEach(function (card, index) {
+    var time = parseFloat(card.querySelector('input').value);
+    addMarkerToProgressBar(time);
+  });
+};
+
+// Function to update joints data
+function updateJointsData(index, updates) {
+  if (index < 0 || index >= window.jointsData.length) {
+    console.error('Invalid index');
+    return;
+  }
+  // console.log("index",index);
+  var updatedData = _objectSpread(_objectSpread({}, window.jointsData[index]), updates);
+
+  // Remove old data from the array
+  window.jointsData.splice(index, 1);
+
+  // Find new insertion position
+  var insertIndex = window.jointsData.findIndex(function (data) {
+    return data.time > updatedData.time;
+  });
+  if (insertIndex === -1) {
+    insertIndex = window.jointsData.length;
+  }
+
+  // Insert updated data
+  window.jointsData.splice(insertIndex, 0, updatedData);
+
+  // Update all card contents
+  // updateAllCardContents();
+  // Simulate continuous mouse drag
+  swapCardsWithAnimation(index, insertIndex);
+  // console.log(index, insertIndex)
+  updateMarkers();
+  saveLocalData();
+}
+function swapCardsWithAnimation(oldIndex, newIndex) {
+  var cards = elements.cardContainer.children;
+  var card = cards[oldIndex];
+
+  // If the card position hasn't changed, no animation is needed
+  if (oldIndex === newIndex) {
+    updateCardContent(card, window.jointsData[oldIndex], oldIndex, false);
+    return;
+  }
+
+  // Set initial position
+  card.style.transition = 'none';
+  card.style.transform = 'translateY(0)';
+
+  // Force reflow
+  card.offsetHeight;
+
+  // Add transition effect
+  card.style.transition = 'transform 0.15s ease-in-out';
+
+  // Calculate displacement distance
+  var displacement = (newIndex - oldIndex) * card.offsetHeight;
+  card.style.transform = "translateY(".concat(displacement, "px)");
+  console.log(oldIndex, newIndex);
+
+  // Reorder DOM after animation ends
+  setTimeout(function () {
+    card.style.transition = 'none';
+    card.style.transform = '';
+
+    // Insert the card at the new position
+    if (newIndex >= elements.cardContainer.children.length - 1) {
+      elements.cardContainer.appendChild(card);
+    } else {
+      elements.cardContainer.insertBefore(card, cards[newIndex]);
+    }
+
+    // Update all card contents
+    updateAllCardContents();
+    highlightCard(cards[newIndex]);
+  }, 150); // Same as transition time
+}
+
+// Function to update all card contents
+function updateAllCardContents() {
+  var cards = Array.from(elements.cardContainer.children);
+  cards.forEach(function (card, index) {
+    updateCardContent(card, window.jointsData[index], index, false);
+  });
+}
+var addFrameCard = function addFrameCard(index) {
+  var cardData = window.jointsData[index];
   var card = document.createElement('div');
   card.className = 'ui-element';
-  card.innerHTML = "\n        <div class=\"angles\">\n            ".concat(window.jointsData.map(function (data) {
-    return Object.entries(data.angles).map(function (_ref) {
-      var _ref2 = _slicedToArray(_ref, 2),
-        key = _ref2[0],
-        angle = _ref2[1];
-      return "<div>".concat(angle.toFixed(1), "</div>");
-    }).join('');
-  }), "\n        </div>\n        <div class=\"icon\">\n            <img src=\"").concat(img, "\" alt=\"Icon\">\n        </div>\n        <div class=\"duration\">\n            <div class=\"number\">1</div>\n            <div id=\"group-card\">").concat(window.groupNameSelected, "</div>\n            <input value=\"").concat(Math.round(window.jointsData[0].time * 100) / 100, "\"></input>\n            <button class=\"duration-btn\">s</button>\n        </div>\n        <button class=\"close\">X</button>\n    ");
+  card.innerHTML = "\n        <div class=\"angles\"></div>\n        <div class=\"icon\">\n            <img alt=\"Icon\">\n        </div>\n        <div class=\"duration\">\n            <div class=\"number\"></div>\n            <div id=\"group-card\"></div>\n            <input value=\"\">\n            <button class=\"duration-btn\">s</button>\n        </div>\n        <button class=\"close\">X</button>\n    ";
+  updateCardContent(card, cardData, index);
   card.querySelector('.close').addEventListener('click', function (event) {
     event.stopPropagation();
-    cardContainer.removeChild(card);
-    var marker = window.progressContainer.querySelectorAll('.progress-marker');
-    window.progressContainer.removeChild(marker[parseInt(card.querySelector('.number').textContent) - 1]);
-    cardContainer.childNodes.forEach(function (card, index) {
-      if (card.querySelector('.number')) {
-        card.querySelector('.number').innerText = index + 1;
-      }
-    });
-    updateJointsSet();
+    var currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+    if (card.classList.contains('highlighted')) {
+      if (currentIndex != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
+    }
+    window.jointsData.splice(currentIndex, 1);
+    elements.cardContainer.removeChild(card);
+    var marker = elements.progressContainer.querySelectorAll('.progress-marker');
+    elements.progressContainer.removeChild(marker[currentIndex]);
+    updateCardNumbers();
+    // console.log(window.jointsData);
   });
   card.querySelector('input').addEventListener('click', function (event) {
-    event.stopPropagation();
+    event.target.select();
+  });
+  card.querySelector('input').addEventListener('blur', function (event) {
+    var newTime = parseFloat(event.target.value);
+    var currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+    updateJointsData(currentIndex, {
+      time: newTime
+    });
+    event.target.blur();
+  });
+  card.querySelector('input').addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      var newTime = parseFloat(event.target.value);
+      var currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+      updateJointsData(currentIndex, {
+        time: newTime
+      });
+      event.target.blur();
+    }
   });
   card.querySelector('.duration-btn').addEventListener('click', function (event) {
     event.stopPropagation();
-    if (_this.textContent === 's') {
-      _this.textContent = 'deg/s';
-    } else {
-      _this.textContent = 's';
-    }
+    this.textContent = this.textContent === 's' ? 'deg/s' : 's';
   });
   card.addEventListener('click', function () {
-    cardContainer.childNodes.forEach(function (child) {
-      return child.classList.remove('highlighted');
-    });
-    card.classList.add('highlighted');
-    window.video.currentTime = card.querySelector('input').value;
-    for (var _i = 0; _i < 6; _i++) viewer.setJointValue("joint_".concat(_i + 1), card.querySelector('.angles').innerText.split('\n')[_i] * DEG2RAD);
+    highlightCard(card);
   });
-  var i = 0;
-  for (; i < cardContainer.childNodes.length; i++) {
-    if (window.jointsData[0].time < cardContainer.childNodes[i].querySelector('input').value) {
-      cardContainer.insertBefore(card, cardContainer.childNodes[i]);
-      break;
-    }
+  var insertIndex = findInsertIndex(cardData.time);
+  if (insertIndex === elements.cardContainer.children.length) {
+    elements.cardContainer.appendChild(card);
+  } else {
+    elements.cardContainer.insertBefore(card, elements.cardContainer.children[insertIndex]);
   }
-  if (i == cardContainer.childNodes.length) {
-    cardContainer.appendChild(card);
-  }
-  cardContainer.childNodes.forEach(function (card, index) {
+  updateCardNumbers();
+  highlightCard(card);
+  updateMarkers();
+  saveLocalData();
+  return card;
+};
+var findInsertIndex = function findInsertIndex(time) {
+  return Array.from(elements.cardContainer.children).findIndex(function (card) {
+    return parseFloat(card.querySelector('input').value) > time;
+  });
+};
+var updateCardNumbers = function updateCardNumbers() {
+  elements.cardContainer.childNodes.forEach(function (card, index) {
     if (card.querySelector('.number')) {
-      card.querySelector('.number').innerText = index + 1;
+      card.querySelector('.number').textContent = index + 1;
     }
   });
-  cardContainer.childNodes.forEach(function (child) {
+};
+var highlightCard = function highlightCard(card) {
+  var updateVidTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  var index = Array.from(card.parentNode.children).indexOf(card);
+  var cardData = window.jointsData[index];
+  if (updateVidTime) video.currentTime = parseFloat(card.querySelector('input').value);
+  Object.entries(cardData.angles).forEach(function (_ref5) {
+    var _ref6 = _slicedToArray(_ref5, 2),
+      joint = _ref6[0],
+      angle = _ref6[1];
+    var joint_name = joint.replace('J', 'joint_');
+    viewer.setJointValue(joint_name, angle * DEG2RAD);
+  });
+  elements.cardContainer.childNodes.forEach(function (child) {
     return child.classList.remove('highlighted');
   });
   card.classList.add('highlighted');
-  new _sortablejs.default(cardContainer, {
-    ghostClass: 'highlighted',
-    // The class applied to the hovered swap item
-    animation: 150,
-    filter: 'input',
-    preventOnFilter: false
-  });
-  updateJointsSet();
 };
-var jointsDataSet = [];
-function updateJointsSet() {
-  var cardContainer = document.getElementById('poseCard-container');
-  jointsDataSet = Array.from(cardContainer.childNodes).map(function (card) {
-    var time = parseFloat(card.querySelector('input').value);
-    var angles = [];
-    card.querySelector('.angles').querySelectorAll('div').forEach(function (angleElement) {
-      angles.push(parseFloat(angleElement.textContent));
-    });
-    return {
-      time: time,
-      angles: angles
-    };
-  });
-  console.log(jointsDataSet);
-}
-
-// init 2D UI and animation
-function updateArmPosition() {
-  // const currentTime = video.currentTime;
-  var currentTime = (Date.now() - startTime) / 1e3;
-  console.log(currentTime);
-  var _loop = function _loop() {
-    if (currentTime >= jointsDataSet[i].time && currentTime < jointsDataSet[i + 1].time) {
-      var t1 = jointsDataSet[i].time;
-      var t2 = jointsDataSet[i + 1].time;
-      var a1 = jointsDataSet[i].angles;
-      var a2 = jointsDataSet[i + 1].angles;
-      var interpolatedAngles = a1.map(function (angle1, index) {
-        var angle2 = a2[index];
-        return angle1 + (angle2 - angle1) * (currentTime - t1) / (t2 - t1);
-      });
-      Object.keys(viewer.robot.joints).forEach(function (jointName, index) {
-        viewer.setJointValue(jointName, interpolatedAngles[index] * DEG2RAD);
-      });
-      return 1; // break
-    }
+elements.copyBtn.addEventListener('click', function () {
+  var jointAngles = Object.fromEntries(Object.keys(viewer.robot.joints).slice(0, 6).map(function (key, index) {
+    var angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
+    var formattedAngle = angleInDegrees.toFixed(1);
+    return ["J".concat(index + 1), formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
+  }));
+  var newCardData = {
+    time: Math.round(video.currentTime * 100) / 100,
+    group: window.groupNameSelected,
+    angles: jointAngles
   };
-  for (var i = 0; i < jointsDataSet.length - 1; i++) {
-    if (_loop()) break;
+  var inserted = false;
+  var i = 0;
+  for (; i < window.jointsData.length; i++) {
+    if (newCardData.time < window.jointsData[i].time) {
+      window.jointsData.splice(i, 0, newCardData);
+      inserted = true;
+      break;
+    }
   }
-  if (currentTime > jointsDataSet[jointsDataSet.length - 1].time) {
-    animToggle.classList.toggle('checked');
-    window.video.pause();
+  if (!inserted) {
+    window.jointsData.push(newCardData);
   }
-}
-var startTime = 0;
-var _updateLoop = function updateLoop() {
-  if (animToggle.classList.contains('checked')) {
-    updateArmPosition();
-  }
-  requestAnimationFrame(_updateLoop);
-};
+  addMarkerToProgressBar(newCardData.time);
+  addFrameCard(i);
+});
+elements.refreshBtn.addEventListener('click', function () {
+  updateCardNumbers();
+  var card = elements.cardContainer.querySelector('.highlighted');
+  var index = Array.from(card.parentNode.children).indexOf(card);
+  var jointAngles = Object.fromEntries(Object.keys(viewer.robot.joints).slice(0, 6).map(function (key, index) {
+    var angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
+    var formattedAngle = angleInDegrees.toFixed(1);
+    return ["J".concat(index + 1), formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
+  }));
+  var time = card.querySelector('input').value;
+  var group = card.querySelector('#group-card').textContent;
+  updateCardContent(card, {
+    time: time,
+    angles: jointAngles,
+    group: group
+  }, index);
+  window.jointsData[index].angles = jointAngles;
+});
+
+// Initialize Sortable with swap option
+document.addEventListener('DOMContentLoaded', function () {
+  new _sortablejs.default(elements.cardContainer, {
+    animation: 150,
+    // Animation time (ms)
+    filter: 'input, .close, .duration-btn',
+    ghostClass: 'sortable-ghost',
+    chosenClass: 'sortable-chosen',
+    dragClass: 'sortable-drag',
+    preventOnFilter: false,
+    onEnd: function onEnd(evt) {
+      var oldIndex = evt.oldIndex;
+      var newIndex = evt.newIndex;
+      var item = window.jointsData.splice(oldIndex, 1)[0];
+      window.jointsData.splice(newIndex, 0, item);
+
+      // console.log(window.jointsData);
+    }
+  });
+});
+elements.clearBtn.addEventListener('click', function () {
+  elements.cardContainer.innerHTML = "";
+  elements.animToggle.classList.remove('checked');
+  elements.progressContainer.querySelectorAll('.progress-marker').forEach(function (mark) {
+    return mark.remove();
+  });
+  window.jointsData = [];
+  window.selectGroup(0);
+  window.groups.splice(1, window.groups.length - 1);
+  window.updateGroups();
+});
+elements.homeBtn.addEventListener('click', function () {
+  var joint = new Array(6).fill(0);
+  for (var angle in joint) viewer.setJointValue("joint_".concat(parseInt(angle) + 1), joint[angle]);
+  viewer.camera.position.set(0, 1, -2.5);
+});
+
+// Start the animation loop
+_updateLoop();
+
+// Update URDF options list
 var updateList = function updateList() {
   document.querySelectorAll('#urdf-options li[urdf]').forEach(function (el) {
     el.addEventListener('click', function (e) {
       var urdf = e.target.getAttribute('urdf');
       var color = e.target.getAttribute('color');
       viewer.up = '+Z';
-      document.getElementById('up-select').value = viewer.up;
+      elements.upSelect.value = viewer.up;
       viewer.urdf = urdf;
-      // animToggle.classList.add('checked');
       setColor(color);
     });
   });
 };
 updateList();
-document.addEventListener('WebComponentsReady', function () {
-  animToggle.addEventListener('click', function () {
-    animToggle.classList.toggle('checked');
-    startTime = Date.now() - window.video.currentTime * 1e3;
-    if (animToggle.classList.contains('checked')) {
-      window.video.play();
-      window.linkRobot.classList.remove('checked');
-    } else window.video.pause();
-  });
 
-  // stop the animation if user tried to manipulate the model
-  viewer.addEventListener('manipulate-start', function (e) {
-    return animToggle.classList.remove('checked');
-  });
-  viewer.addEventListener('urdf-processed', function (e) {
-    return updateArmPosition();
-  });
-  _updateLoop();
-  viewer.camera.position.set(0, 1, -2.5);
-  // viewer.control
-  viewer.noAutoRecenter = true;
-});
-var addBtn = document.querySelector(".addBtn");
-var refreshBtn = document.querySelector('.refreshBtn');
-var clearBtn = document.querySelector(".clearBtn");
-addBtn.addEventListener('click', function () {
-  var _this2 = this;
-  var jointAngles = Object.keys(viewer.robot.joints).slice(0, 6).map(function (key) {
-    var angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
-    var formattedAngle = angleInDegrees.toFixed(1);
-    return formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : formattedAngle;
-  });
-  var img = capture();
-  var cardContainer = document.getElementById('poseCard-container');
-  var card = document.createElement('div');
-  card.className = 'ui-element';
-  card.innerHTML = "\n        <div class=\"angles\">\n            <div>".concat(jointAngles.map(function (angle) {
-    return "<div>".concat(angle, "</div>");
-  }).join(''), "</div>\n        </div>\n        <div class=\"icon\">\n            <img src=\"").concat(img, "\" alt=\"Icon\">\n        </div>\n        <div class=\"duration\">\n            <div class=\"number\">").concat(cardContainer.childNodes.length + 1, "</div>\n            <input value=\"1\"></input>\n            <button class=\"duration-btn\">s</button>\n        </div>\n        <button class=\"close\">X</button>\n    ");
-  card.querySelector('.close').addEventListener('click', function (event) {
-    event.stopPropagation();
-    cardContainer.removeChild(card);
-  });
-  card.querySelector('input').addEventListener('click', function (event) {
-    event.stopPropagation();
-  });
-  card.querySelector('.duration-btn').addEventListener('click', function (event) {
-    event.stopPropagation();
-    if (_this2.textContent === 's') {
-      _this2.textContent = 'deg/s';
-    } else {
-      _this2.textContent = 's';
+// Make window.addFrameCard available globally
+window.addFrameCard = addFrameCard;
+
+// Global variable to track if local storage is enabled
+window.isLocalStorageEnabled = false;
+
+// Function to save jointsData to localStorage
+window.saveLocalData = function () {
+  if (!isLocalStorageEnabled) return;
+  try {
+    localStorage.setItem('jointsData', JSON.stringify(window.jointsData));
+    localStorage.setItem('groups', JSON.stringify(window.groups));
+    console.log('Data saved successfully');
+  } catch (error) {
+    console.error('Error saving data:', error);
+  }
+};
+
+// Function to load jointsData from localStorage
+function loadLocalData() {
+  if (!isLocalStorageEnabled) return;
+  try {
+    var jointsData = localStorage.getItem('jointsData');
+    var groups = localStorage.getItem('groups');
+    if (jointsData && groups) {
+      window.jointsData = JSON.parse(jointsData);
+      window.groups = JSON.parse(groups);
+      console.log('Data loaded successfully');
+      return true;
     }
-  });
-  card.addEventListener('click', function () {
-    cardContainer.childNodes.forEach(function (child) {
-      return child.classList.remove('highlighted');
-    });
-    card.classList.add('highlighted');
-    for (var i = 0; i < 6; i++) viewer.setJointValue("joint_".concat(i + 1), card.querySelector('.angles').innerText.split('\n')[i] * DEG2RAD);
-  });
-  cardContainer.appendChild(card);
-  var sortable = new _sortablejs.default(cardContainer, {
-    ghostClass: 'highlighted',
-    animation: 150,
-    filter: 'input',
-    preventOnFilter: false
-  });
-  updateJointsSet();
-});
-clearBtn.addEventListener('click', function () {
-  var cardContainer = document.getElementById('poseCard-container');
-  cardContainer.innerHTML = "";
-  animToggle.classList.remove('checked');
-  window.progressContainer.querySelectorAll('.progress-marker').forEach(function (mark) {
-    return mark.remove();
-  });
-});
-refreshBtn.addEventListener('click', function () {
-  var cardContainer = document.getElementById('poseCard-container');
-  cardContainer.childNodes.forEach(function (card, index) {
-    if (card.querySelector('.number')) {
-      card.querySelector('.number').innerText = index + 1;
-    }
-  });
-  cardContainer.childNodes.forEach(function (child) {
-    if (child.classList.contains('highlighted')) {
-      var jointAngles = Object.keys(viewer.robot.joints).slice(0, 6).map(function (key) {
-        var angleInDegrees = viewer.robot.joints[key].angle * RAD2DEG;
-        var formattedAngle = angleInDegrees.toFixed(1);
-        return formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : formattedAngle;
-      });
-      child.querySelector('.angles').innerHTML = "<div>".concat(jointAngles.map(function (angle) {
-        return "<div>".concat(angle, "</div>");
-      }).join(''), "</div>");
-      child.querySelector('img').src = capture();
-    }
-  });
-});
-function capture() {
-  // const renderer = new THREE.WebGLRenderer();
-  viewer.renderer.render(viewer.scene, viewer.camera);
-  var img = viewer.renderer.domElement.toDataURL();
-  return img;
+  } catch (error) {
+    console.error('Error loading data:', error);
+  }
+  return false;
 }
-var homeBtn = document.querySelector('.homeBtn');
-homeBtn.addEventListener('click', function () {
-  var joint = new Array(6).fill(0);
-  for (var angle in joint) viewer.setJointValue("joint_".concat(parseInt(angle) + 1), joint[angle]);
-  viewer.camera.position.set(0, 1, -2.5);
+
+// Function to apply loaded data to the UI
+function applyLoadedData() {
+  if (loadLocalData()) {
+    // Clear existing cards
+    elements.cardContainer.innerHTML = '';
+
+    // Recreate cards based on loaded data
+    window.jointsData.forEach(function (data, index) {
+      window.addFrameCard(index);
+    });
+    window.updateGroups();
+    console.log('Loaded data applied to UI');
+  } else {
+    console.log('No saved data found or error in loading');
+  }
+}
+
+// Call applyLoadedData when the page loads
+document.addEventListener('DOMContentLoaded', function () {
+  setTimeout(applyLoadedData, 3000);
+});
+
+// Add event listeners to save data after relevant actions
+elements.copyBtn.addEventListener('click', saveLocalData);
+elements.refreshBtn.addEventListener('click', saveLocalData);
+elements.clearBtn.addEventListener('click', saveLocalData);
+
+// Function to handle storage toggle change
+function handleStorageToggle(event) {
+  isLocalStorageEnabled = event.target.checked;
+  localStorage.setItem('storageEnabled', isLocalStorageEnabled);
+  if (isLocalStorageEnabled) {
+    saveLocalData(); // Save current data immediately when enabled
+  } else {
+    localStorage.removeItem('jointsData'); // Clear saved data when disabled
+    localStorage.removeItem('groups'); // Clear saved data when disabled
+  }
+}
+
+// Initialize storage toggle state
+document.addEventListener('DOMContentLoaded', function () {
+  var storageToggle = document.getElementById('enable-storage');
+  isLocalStorageEnabled = localStorage.getItem('storageEnabled') === 'true';
+  storageToggle.checked = isLocalStorageEnabled;
+  storageToggle.addEventListener('change', handleStorageToggle);
+  if (isLocalStorageEnabled) {
+    applyLoadedData();
+  }
+});
+elements.fixCamBtn.addEventListener('click', function () {
+  elements.fixCamBtn.classList.toggle('active');
+  if (elements.fixCamBtn.classList.contains('active')) {
+    elements.fixCamBtn.style.color = 'red';
+    viewer.getControls.enableRotate = false;
+  } else {
+    elements.fixCamBtn.style.color = 'black';
+    viewer.getControls.enableRotate = true;
+  }
+});
+var videoVolume = 1;
+
+// keyboard functions
+document.addEventListener('keyup', function (event) {
+  if (event.key === 'Delete') {
+    var card = elements.cardContainer.querySelector('.highlighted');
+    if (card) {
+      var index = Array.from(elements.cardContainer.children).indexOf(card);
+      if (index != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
+      window.jointsData.splice(index, 1);
+      elements.cardContainer.removeChild(card);
+      var marker = elements.progressContainer.querySelectorAll('.progress-marker');
+      elements.progressContainer.removeChild(marker[index]);
+      updateCardNumbers();
+    }
+  }
+  if (event.key === 'ArrowUp') {
+    var _card = elements.cardContainer.querySelector('.highlighted');
+    if (_card.previousElementSibling) highlightCard(_card.previousElementSibling);
+  } else if (event.key === 'ArrowDown') {
+    var _card2 = elements.cardContainer.querySelector('.highlighted');
+    if (_card2.nextElementSibling) highlightCard(_card2.nextElementSibling);
+  }
+  if (event.key === 'm') {
+    if (video.volume != 0) {
+      video.volume = 0;
+    } else {
+      video.volume = videoVolume;
+    }
+  }
+  if (event.key === '+') {
+    video.volume += 0.1;
+    videoVolume = video.volume;
+  } else if (event.key === '-') {
+    video.volume -= 0.1;
+    videoVolume = video.volume;
+  }
+  if (event.key === ' ') {
+    if (video.paused) video.play();else video.pause();
+  }
+  if (event.key === 'p') {
+    elements.animToggle.classList.toggle('checked');
+    if (elements.animToggle.classList.contains('checked')) {
+      state.startTime = Date.now() - video.currentTime * 1e3;
+      video.play();
+      window.linkRobot.classList.remove('checked');
+    } else {
+      video.pause();
+    }
+  }
+});
+document.addEventListener('keydown', function (event) {
+  if (event.key === 'ArrowLeft') video.currentTime -= 0.1;else if (event.key === 'ArrowRight') video.currentTime += 0.1;
 });
 },{"three":"dKqR","./dragAndDrop.js":"oO0K","three/examples/jsm/loaders/STLLoader.js":"oy60","three/examples/jsm/loaders/GLTFLoader.js":"O6i0","three/examples/jsm/loaders/ColladaLoader.js":"KAXn","three/examples/jsm/loaders/OBJLoader.js":"LkK9","../../src/urdf-manipulator-element.js":"rMic","sortablejs":"H54I"}]},{},["H99C"], null)

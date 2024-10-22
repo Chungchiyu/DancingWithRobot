@@ -6,6 +6,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
 import URDFManipulator from '../../src/urdf-manipulator-element.js';
+import URDFCollisionViewer from '../../src/urdf-collisionViewer-element.js';
 
 import Sortable, { Swap } from 'sortablejs';
 
@@ -14,6 +15,7 @@ Sortable.mount(new Swap());
 customElements.define('urdf-viewer', URDFManipulator);
 
 window.viewer = document.querySelector('urdf-viewer');
+// viewer.toggleCollisionVisualization(true);
 
 // Cache DOM elements
 const elements = {
@@ -239,8 +241,10 @@ const updateArmPosition = () => {
 const updateLoop = () => {
     if (elements.animToggle.classList.contains('checked')) {
         updateArmPosition();
+        
     }
     requestAnimationFrame(updateLoop);
+    // viewer.update();
 };
 
 // Initialize
@@ -470,6 +474,13 @@ const addFrameCard = (index) => {
 
     card.querySelector('input').addEventListener('click', (event) => {
         event.target.select();
+    });
+
+    card.querySelector('input').addEventListener('blur', (event) => {
+        const newTime = parseFloat(event.target.value);
+        const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+        updateJointsData(currentIndex, { time: newTime });
+        event.target.blur();
     });
 
     card.querySelector('input').addEventListener('keydown', (event) => {
@@ -803,6 +814,17 @@ document.addEventListener('keyup', function(event) {
             video.play();
         else
             video.pause();
+    }
+
+    if (event.key === 'p') {
+        elements.animToggle.classList.toggle('checked');
+        if (elements.animToggle.classList.contains('checked')) {
+            state.startTime = Date.now() - video.currentTime * 1e3;
+            video.play();
+            window.linkRobot.classList.remove('checked');
+        } else {
+            video.pause();
+        }
     }
 });
 

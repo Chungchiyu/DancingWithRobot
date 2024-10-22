@@ -218,7 +218,7 @@ function angleMapping(angles, groupData) {
       let clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
 
       // Map the angle using the values from mappingData
-      angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+      angleOut[joint] = map(angle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
 
       if (angleOut[joint] === undefined || isNaN(angleOut[joint]))
         angleOut[joint] = 0;
@@ -244,6 +244,8 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
     return angles;
   }
   Object.entries(group.data).forEach(([key, value]) => {
+    if (value == 'none')
+      return;
     const points = value.angles.split(',').map(id => id.trim());
 
     if (points.length === 3 || points.length === 4) {
@@ -253,7 +255,7 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
           return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
         });
         if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
-          angles[key] = calculateAngle(a, b, c);
+          angles[key] = calculateAngle(a, b, c, undefined, value.is3D);
         } else {
           console.warn(`Low confidence for angle ${key}, skipping calculation`);
         }
@@ -273,16 +275,18 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
   return angles;
 }
 
-function calculateAngle(A, B, C, D) {
+function calculateAngle(A, B, C, D, is3D) {
   if (D === undefined) {
     // Check if we're dealing with 2D or 3D calculation
-    const is3D = typeof C === 'string';
+    const withCoord = typeof C === 'string';
+    is3D = is3D || withCoord;
 
     // Vector from B to A
     const BA = { x: A.x - B.x, y: A.y - B.y, z: is3D ? (A.z || 0) - (B.z || 0) : 0 };
+    // Vector from B to C
+    let BC = { x: C.x - B.x, y: C.y - B.y, z: is3D ? (C.z || 0) - (B.z || 0) : 0 };
 
-    let BC;
-    if (is3D) {
+    if (withCoord) {
       switch (C) {
         case "OH": BC = { x: 0, y: 0, z: -1 }; break;
         case "DV": BC = { x: 0, y: -1, z: 0 }; break;
@@ -292,15 +296,15 @@ function calculateAngle(A, B, C, D) {
         case "LH": BC = { x: -1, y: 0, z: 0 }; break;
         default: throw new Error(`Unknown axis: ${C}`);
       }
+    }
 
+    if (is3D) {
       // 3D calculation
       const angle = calculateAngleBetweenVectors(BA, BC);
       const cross = crossProduct(BA, BC);
       const dot = dotProduct(cross, { x: 0, y: 1, z: 0 }); // Assuming Y is up
       return dot < 0 ? -angle : angle;
     } else {
-      // Vector from B to C
-      BC = { x: C.x - B.x, y: C.y - B.y, z: is3D ? (C.z || 0) - (B.z || 0) : 0 };
       // 2D calculation
       return calculateAngle2D(BA, BC);
     }

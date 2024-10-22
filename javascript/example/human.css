@@ -275,7 +275,7 @@
     overflow: hidden;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-    display: none;
+    /* display: none; */
 }
 
 .button-23d-slider {
@@ -309,4 +309,9 @@
 
 .button-23d.active {
     color: white;
+}
+
+.button-23d:disabled,
+.button-23d[disabled]{
+  background-color: #bebebe;
 }
