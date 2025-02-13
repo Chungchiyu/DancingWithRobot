@@ -381,7 +381,7 @@ function angleMapping(angles, groupData) {
       var clampedAngle = Math.max(mappingData.PL, Math.min(mappingData.PR, angle));
 
       // Map the angle using the values from mappingData
-      angleOut[joint] = map(clampedAngle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
+      angleOut[joint] = map(angle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
       if (angleOut[joint] === undefined || isNaN(angleOut[joint])) angleOut[joint] = 0;
     } else {
       // If angle is undefined or NaN, use a default value or skip
@@ -409,6 +409,7 @@ function calculateAllAngles(keypoints3D) {
     var _ref4 = _slicedToArray(_ref3, 2),
       key = _ref4[0],
       value = _ref4[1];
+    if (value == 'none') return;
     var points = value.angles.split(',').map(function (id) {
       return id.trim();
     });
@@ -428,7 +429,7 @@ function calculateAllAngles(keypoints3D) {
           b = _points$map2[1],
           c = _points$map2[2];
         if (a.score > 0.2 && b.score > 0.2 || typeof c === 'string') {
-          angles[key] = calculateAngle(a, b, c);
+          angles[key] = calculateAngle(a, b, c, undefined, value.is3D);
         } else {
           console.warn("Low confidence for angle ".concat(key, ", skipping calculation"));
         }
@@ -459,10 +460,11 @@ function calculateAllAngles(keypoints3D) {
   });
   return angles;
 }
-function calculateAngle(A, B, C, D) {
+function calculateAngle(A, B, C, D, is3D) {
   if (D === undefined) {
     // Check if we're dealing with 2D or 3D calculation
-    var is3D = typeof C === 'string';
+    var withCoord = typeof C === 'string';
+    is3D = is3D || withCoord;
 
     // Vector from B to A
     var BA = {
@@ -470,8 +472,13 @@ function calculateAngle(A, B, C, D) {
       y: A.y - B.y,
       z: is3D ? (A.z || 0) - (B.z || 0) : 0
     };
-    var BC;
-    if (is3D) {
+    // Vector from B to C
+    var BC = {
+      x: C.x - B.x,
+      y: C.y - B.y,
+      z: is3D ? (C.z || 0) - (B.z || 0) : 0
+    };
+    if (withCoord) {
       switch (C) {
         case "OH":
           BC = {
@@ -518,7 +525,8 @@ function calculateAngle(A, B, C, D) {
         default:
           throw new Error("Unknown axis: ".concat(C));
       }
-
+    }
+    if (is3D) {
       // 3D calculation
       var angle = calculateAngleBetweenVectors(BA, BC);
       var cross = crossProduct(BA, BC);
@@ -529,12 +537,6 @@ function calculateAngle(A, B, C, D) {
       }); // Assuming Y is up
       return dot < 0 ? -angle : angle;
     } else {
-      // Vector from B to C
-      BC = {
-        x: C.x - B.x,
-        y: C.y - B.y,
-        z: is3D ? (C.z || 0) - (B.z || 0) : 0
-      };
       // 2D calculation
       return calculateAngle2D(BA, BC);
     }

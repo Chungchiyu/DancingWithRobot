@@ -480,15 +480,15 @@ const addFrameCard = (index) => {
         const newTime = parseFloat(event.target.value);
         const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
         updateJointsData(currentIndex, { time: newTime });
-        event.target.blur();
     });
+    
 
     card.querySelector('input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            const newTime = parseFloat(event.target.value);
-            const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
-            updateJointsData(currentIndex, { time: newTime });
-            event.target.blur();
+            // const newTime = parseFloat(event.target.value);
+            // const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+            // updateJointsData(currentIndex, { time: newTime });
+            event.target.blur();    // use blur to ativate time change, if using above lines will trigger double blur
         }
     });
 

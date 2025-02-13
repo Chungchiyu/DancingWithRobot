@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta charset="utf-8">
 
-    <title>HIWIN simulator</title>
+    <title>TwinPose</title>
 
     <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.4.3/webcomponents-bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap" rel="stylesheet">
@@ -19,10 +19,35 @@
     <link href="player-style.ca715887.css" type="text/css" rel="stylesheet">
     <link href="human.54d0b0d5.css" type="text/css" rel="stylesheet">
     <link href="editor.71a79d52.css" type="text/css" rel="stylesheet">
+    <!-- <script type="importmap">
+        {
+          "imports": {
+            "three": "../node_modules/three/build/three.module.js"
+          }
+        }
+    </script> -->
     <script src="redirect.9e0f3bb7.js"></script>
+    <style>.loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: white;
+            z-index: 9999;
+            font-size: 5vw;
+            font-weight: bold;
+            transition: opacity 2s ease-out;
+        }
+        
+        .hiddenL { opacity: 0; pointer-events: none; }</style>
 </head>
 
 <body tabindex="0">
+    <div class="loading-screen" id="loading">TwinPose</div>
     <div class="container">
         <div class="side" id="left-side">
             <div id="video-player" class="video-player">
@@ -96,8 +121,8 @@
                             <svg id="svgLayer"></svg>
                             <div class="button-23d-container">
                                 <div class="button-23d-slider"></div>
-                                <button class="button-23d" id="button2D">2D</button>
-                                <button class="button-23d active" id="button3D">3D</button>
+                                <button class="button-23d active" id="button2D">2D</button>
+                                <button class="button-23d" id="button3D">3D</button>
                             </div>
                         </div>
                         <div id="angleMappingControls">
@@ -197,11 +222,22 @@
             <div id="poseCard-container"></div>
         </div>
     </div>
+    
+    <script>window.addEventListener("load", function () {
+  document.getElementById("loading").classList.add("hiddenL");
+});</script>
 
-    <script src="human.a77fcb94.js"></script>
-    <script src="player.13e516db.js"></script>
-    <script src="src.a2b27638.js"></script>
-    <script src="editor.0072d4cf.js"></script>
+    <!-- <script type="importmap">
+        {
+            "imports": {
+                "three": "../node_modules/three/build/three.module.js";
+            }
+        }
+    </script> -->
+    <script type="module" src="src.a2b27638.js"></script>
+    <script type="module" src="human.a77fcb94.js"></script>
+    <script type="module" src="player.13e516db.js"></script>
+    <script type="module" src="editor.0072d4cf.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
 </body>

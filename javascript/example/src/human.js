@@ -629,7 +629,7 @@ window.updateGroups = function () {
         selectGroup(selectedGroup);
     }
 
-    window.saveLocalData();
+    // window.saveLocalData();
 }
 
 function deleteGroup(index) {

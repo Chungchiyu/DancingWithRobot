@@ -48801,7 +48801,294 @@ var URDFManipulator = exports.default = /*#__PURE__*/function (_URDFViewer) {
   }]);
 }(_urdfViewerElement.default);
 ;
-},{"three":"dKqR","./urdf-viewer-element.js":"VouT","./URDFDragControls.js":"vo4N"}],"H54I":[function(require,module,exports) {
+},{"three":"dKqR","./urdf-viewer-element.js":"VouT","./URDFDragControls.js":"vo4N"}],"PVJv":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+var _urdfManipulatorElement = _interopRequireDefault(require("./urdf-manipulator-element.js"));
+var THREE = _interopRequireWildcard(require("three"));
+function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
+function _interopRequireWildcard(e, r) { if (!r && e && e.__esModule) return e; if (null === e || "object" != typeof e && "function" != typeof e) return { default: e }; var t = _getRequireWildcardCache(r); if (t && t.has(e)) return t.get(e); var n = { __proto__: null }, a = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var u in e) if ("default" !== u && {}.hasOwnProperty.call(e, u)) { var i = a ? Object.getOwnPropertyDescriptor(e, u) : null; i && (i.get || i.set) ? Object.defineProperty(n, u, i) : n[u] = e[u]; } return n.default = e, t && t.set(e, n), n; }
+function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t.return || t.return(); } finally { if (u) throw o; } } }; }
+function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
+function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
+function _classCallCheck(a, n) { if (!(a instanceof n)) throw new TypeError("Cannot call a class as a function"); }
+function _defineProperties(e, r) { for (var t = 0; t < r.length; t++) { var o = r[t]; o.enumerable = o.enumerable || !1, o.configurable = !0, "value" in o && (o.writable = !0), Object.defineProperty(e, _toPropertyKey(o.key), o); } }
+function _createClass(e, r, t) { return r && _defineProperties(e.prototype, r), t && _defineProperties(e, t), Object.defineProperty(e, "prototype", { writable: !1 }), e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+function _callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, _isNativeReflectConstruct() ? Reflect.construct(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function _possibleConstructorReturn(t, e) { if (e && ("object" == _typeof(e) || "function" == typeof e)) return e; if (void 0 !== e) throw new TypeError("Derived constructors may only return object or undefined"); return _assertThisInitialized(t); }
+function _assertThisInitialized(e) { if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); return e; }
+function _isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); } catch (t) {} return (_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+function _superPropGet(t, e, o, r) { var p = _get(_getPrototypeOf(1 & r ? t.prototype : t), e, o); return 2 & r && "function" == typeof p ? function (t) { return p.apply(o, t); } : p; }
+function _get() { return _get = "undefined" != typeof Reflect && Reflect.get ? Reflect.get.bind() : function (e, t, r) { var p = _superPropBase(e, t); if (p) { var n = Object.getOwnPropertyDescriptor(p, t); return n.get ? n.get.call(arguments.length < 3 ? e : r) : n.value; } }, _get.apply(null, arguments); }
+function _superPropBase(t, o) { for (; !{}.hasOwnProperty.call(t, o) && null !== (t = _getPrototypeOf(t));); return t; }
+function _getPrototypeOf(t) { return _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf.bind() : function (t) { return t.__proto__ || Object.getPrototypeOf(t); }, _getPrototypeOf(t); }
+function _inherits(t, e) { if ("function" != typeof e && null !== e) throw new TypeError("Super expression must either be null or a function"); t.prototype = Object.create(e && e.prototype, { constructor: { value: t, writable: !0, configurable: !0 } }), Object.defineProperty(t, "prototype", { writable: !1 }), e && _setPrototypeOf(t, e); }
+function _setPrototypeOf(t, e) { return _setPrototypeOf = Object.setPrototypeOf ? Object.setPrototypeOf.bind() : function (t, e) { return t.__proto__ = e, t; }, _setPrototypeOf(t, e); }
+var CollisionViewer = exports.default = /*#__PURE__*/function (_URDFManipulator) {
+  function CollisionViewer() {
+    var _this;
+    _classCallCheck(this, CollisionViewer);
+    _this = _callSuper(this, CollisionViewer);
+    _this.collisionMeshes = new Map();
+    _this.colliderIds = new Map();
+    _this.showCollisions = true;
+    _this.collisionMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      transparent: true,
+      opacity: 0.5,
+      wireframe: true
+    });
+    _this.collisionRangeMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffff00,
+      transparent: true,
+      opacity: 0.3
+    });
+    _this.axisRangeMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00ffff,
+      transparent: true,
+      opacity: 0.2
+    });
+    _this.collisionRanges = new Map();
+    _this.axisRanges = new Map();
+    _this.collidableMeshList = [];
+    _this.addEventListener('urdf-processed', function () {
+      _this.setupColliders();
+    });
+    return _this;
+  }
+  _inherits(CollisionViewer, _URDFManipulator);
+  return _createClass(CollisionViewer, [{
+    key: "setupColliders",
+    value: function setupColliders() {
+      var _this2 = this;
+      if (!this.robot) {
+        console.warn('Robot not loaded');
+        return;
+      }
+      this.collisionMeshes.forEach(function (mesh) {
+        return _this2.scene.remove(mesh);
+      });
+      this.collisionMeshes.clear();
+      this.colliderIds.clear();
+      this.collidableMeshList = [];
+      var colliderId = 0;
+      this.robot.traverse(function (node) {
+        if (node.isURDFCollider) {
+          _this2.createCollider(node, colliderId);
+          _this2.colliderIds.set(node, colliderId);
+          colliderId++;
+        }
+        if (node.isURDFJoint) {
+          _this2.createAxisRange(node);
+        }
+      });
+      console.log("Colliders created: ".concat(this.collisionMeshes.size));
+    }
+  }, {
+    key: "createCollider",
+    value: function createCollider(collider, id) {
+      var visualNode = collider.children.find(function (child) {
+        return child.isMesh;
+      });
+      if (!visualNode || !visualNode.geometry) {
+        console.warn('Collider does not contain a valid mesh:', collider);
+        return;
+      }
+      var collisionMesh = new THREE.Mesh(visualNode.geometry.clone(), this.collisionMaterial);
+      collisionMesh.position.copy(visualNode.position);
+      collisionMesh.rotation.copy(visualNode.rotation);
+      collisionMesh.scale.copy(visualNode.scale);
+      collisionMesh.updateMatrix();
+      collisionMesh.matrixAutoUpdate = false;
+      collisionMesh.visible = this.showCollisions;
+      this.scene.add(collisionMesh);
+      this.collisionMeshes.set(id, collisionMesh);
+      this.collidableMeshList.push(collisionMesh);
+    }
+  }, {
+    key: "createAxisRange",
+    value: function createAxisRange(joint) {
+      var box = new THREE.Box3();
+      joint.children.forEach(function (child) {
+        if (child.isURDFLink) {
+          box.expandByObject(child);
+        }
+      });
+      var boxGeometry = new THREE.BoxGeometry(box.max.x - box.min.x, box.max.y - box.min.y, box.max.z - box.min.z);
+      var rangeMesh = new THREE.Mesh(boxGeometry, this.axisRangeMaterial);
+      rangeMesh.position.copy(box.getCenter(new THREE.Vector3()));
+      rangeMesh.updateMatrix();
+      rangeMesh.matrixAutoUpdate = false;
+      this.scene.add(rangeMesh);
+      this.axisRanges.set(joint, rangeMesh);
+    }
+  }, {
+    key: "update",
+    value: function update() {
+      _superPropGet(CollisionViewer, "redraw", this, 3)([]); // Call the parent's redraw method
+      this.updateColliderPositions();
+      this.updateAxisRanges();
+      this.checkCollisions();
+      this.renderer.render(this.scene, this.camera);
+    }
+  }, {
+    key: "updateColliderPositions",
+    value: function updateColliderPositions() {
+      var _this3 = this;
+      this.collisionMeshes.forEach(function (mesh, id) {
+        var collider = _this3.getColliderById(id);
+        if (collider) {
+          collider.updateWorldMatrix(true, false);
+          mesh.matrix.copy(collider.matrixWorld);
+          mesh.updateMatrixWorld(true);
+        }
+      });
+    }
+  }, {
+    key: "updateAxisRanges",
+    value: function updateAxisRanges() {
+      this.axisRanges.forEach(function (rangeMesh, joint) {
+        joint.updateWorldMatrix(true, false);
+        rangeMesh.matrix.copy(joint.matrixWorld);
+        rangeMesh.updateMatrixWorld(true);
+      });
+    }
+  }, {
+    key: "getColliderById",
+    value: function getColliderById(id) {
+      var _iterator = _createForOfIteratorHelper(this.colliderIds),
+        _step;
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var _step$value = _slicedToArray(_step.value, 2),
+            collider = _step$value[0],
+            colliderId = _step$value[1];
+          if (colliderId === id) return collider;
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+      return null;
+    }
+  }, {
+    key: "checkCollisions",
+    value: function checkCollisions() {
+      var _this4 = this;
+      this.collisionMeshes.forEach(function (mesh, id) {
+        var collider = _this4.getColliderById(id);
+        if (collider) {
+          _this4.checkCollisionForMesh(mesh);
+        }
+      });
+    }
+  }, {
+    key: "checkCollisionForMesh",
+    value: function checkCollisionForMesh(mesh) {
+      var vertices = mesh.geometry.vertices || mesh.geometry.attributes.position.array;
+      var vertexCount = vertices.length / 3;
+      for (var i = 0; i < vertexCount; i++) {
+        var vertexIndex = i * 3;
+        var localVertex = new THREE.Vector3(vertices[vertexIndex], vertices[vertexIndex + 1], vertices[vertexIndex + 2]);
+        var globalVertex = localVertex.applyMatrix4(mesh.matrixWorld);
+        var directionVector = globalVertex.sub(mesh.position);
+        var ray = new THREE.Raycaster(mesh.position, directionVector.normalize());
+        var collisionResults = ray.intersectObjects(this.collidableMeshList.filter(function (obj) {
+          return obj !== mesh;
+        }));
+        if (collisionResults.length > 0 && collisionResults[0].distance < directionVector.length()) {
+          this.handleCollision(mesh, collisionResults[0].object, collisionResults[0].point);
+          return; // Exit after first collision detection
+        }
+      }
+      this.resetCollisionHighlight(mesh);
+    }
+  }, {
+    key: "handleCollision",
+    value: function handleCollision(meshA, meshB, collisionPoint) {
+      this.highlightCollision(meshA);
+      this.highlightCollision(meshB);
+      this.showCollisionRange(meshA, meshB, collisionPoint);
+      console.log("Collision detected between meshes ".concat(this.colliderIds.get(meshA), " and ").concat(this.colliderIds.get(meshB)));
+    }
+  }, {
+    key: "highlightCollision",
+    value: function highlightCollision(mesh) {
+      if (mesh) {
+        mesh.material.color.setHex(0x00ff00);
+        mesh.material.opacity = 0.8;
+        mesh.material.needsUpdate = true;
+      }
+    }
+  }, {
+    key: "resetCollisionHighlight",
+    value: function resetCollisionHighlight(mesh) {
+      if (mesh) {
+        mesh.material.color.setHex(0xff0000);
+        mesh.material.opacity = 0.5;
+        mesh.material.needsUpdate = true;
+      }
+    }
+  }, {
+    key: "showCollisionRange",
+    value: function showCollisionRange(meshA, meshB, collisionPoint) {
+      var key = this.getCollisionKey(meshA, meshB);
+      var rangeMesh = this.collisionRanges.get(key);
+      if (!rangeMesh) {
+        var geometry = new THREE.SphereGeometry(0.05, 32, 32);
+        rangeMesh = new THREE.Mesh(geometry, this.collisionRangeMaterial);
+        this.scene.add(rangeMesh);
+        this.collisionRanges.set(key, rangeMesh);
+      }
+      rangeMesh.position.copy(collisionPoint);
+      rangeMesh.visible = true;
+    }
+  }, {
+    key: "removeCollisionRange",
+    value: function removeCollisionRange(meshA, meshB) {
+      var key = this.getCollisionKey(meshA, meshB);
+      var rangeMesh = this.collisionRanges.get(key);
+      if (rangeMesh) {
+        rangeMesh.visible = false;
+      }
+    }
+  }, {
+    key: "getCollisionKey",
+    value: function getCollisionKey(meshA, meshB) {
+      var idA = this.colliderIds.get(meshA);
+      var idB = this.colliderIds.get(meshB);
+      return "".concat(Math.min(idA, idB), "-").concat(Math.max(idA, idB));
+    }
+  }, {
+    key: "toggleCollisionVisualization",
+    value: function toggleCollisionVisualization(show) {
+      this.showCollisions = show;
+      this.collisionMeshes.forEach(function (mesh) {
+        mesh.visible = show;
+      });
+      this.collisionRanges.forEach(function (mesh) {
+        mesh.visible = show && mesh.visible;
+      });
+      this.axisRanges.forEach(function (mesh) {
+        mesh.visible = show;
+      });
+    }
+  }]);
+}(_urdfManipulatorElement.default);
+},{"./urdf-manipulator-element.js":"rMic","three":"dKqR"}],"H54I":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -52160,6 +52447,7 @@ var _GLTFLoader = require("three/examples/jsm/loaders/GLTFLoader.js");
 var _ColladaLoader = require("three/examples/jsm/loaders/ColladaLoader.js");
 var _OBJLoader = require("three/examples/jsm/loaders/OBJLoader.js");
 var _urdfManipulatorElement = _interopRequireDefault(require("../../src/urdf-manipulator-element.js"));
+var _urdfCollisionViewerElement = _interopRequireDefault(require("../../src/urdf-collisionViewer-element.js"));
 var _sortablejs = _interopRequireWildcard(require("sortablejs"));
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 function _getRequireWildcardCache(e) { if ("function" != typeof WeakMap) return null; var r = new WeakMap(), t = new WeakMap(); return (_getRequireWildcardCache = function (e) { return e ? t : r; })(e); }
@@ -52179,6 +52467,7 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; } /* globals */
 _sortablejs.default.mount(new _sortablejs.Swap());
 customElements.define('urdf-viewer', _urdfManipulatorElement.default);
 window.viewer = document.querySelector('urdf-viewer');
+// viewer.toggleCollisionVisualization(true);
 
 // Cache DOM elements
 var elements = {
@@ -52383,6 +52672,7 @@ var _updateLoop = function updateLoop() {
     updateArmPosition();
   }
   requestAnimationFrame(_updateLoop);
+  // viewer.update();
 };
 
 // Initialize
@@ -52595,16 +52885,13 @@ var addFrameCard = function addFrameCard(index) {
     updateJointsData(currentIndex, {
       time: newTime
     });
-    event.target.blur();
   });
   card.querySelector('input').addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
-      var newTime = parseFloat(event.target.value);
-      var currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
-      updateJointsData(currentIndex, {
-        time: newTime
-      });
-      event.target.blur();
+      // const newTime = parseFloat(event.target.value);
+      // const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+      // updateJointsData(currentIndex, { time: newTime });
+      event.target.blur(); // use blur to ativate time change, if using above lines will trigger double blur
     }
   });
   card.querySelector('.duration-btn').addEventListener('click', function (event) {
@@ -52904,4 +53191,4 @@ document.addEventListener('keyup', function (event) {
 document.addEventListener('keydown', function (event) {
   if (event.key === 'ArrowLeft') video.currentTime -= 0.1;else if (event.key === 'ArrowRight') video.currentTime += 0.1;
 });
-},{"three":"dKqR","./dragAndDrop.js":"oO0K","three/examples/jsm/loaders/STLLoader.js":"oy60","three/examples/jsm/loaders/GLTFLoader.js":"O6i0","three/examples/jsm/loaders/ColladaLoader.js":"KAXn","three/examples/jsm/loaders/OBJLoader.js":"LkK9","../../src/urdf-manipulator-element.js":"rMic","sortablejs":"H54I"}]},{},["H99C"], null)
+},{"three":"dKqR","./dragAndDrop.js":"oO0K","three/examples/jsm/loaders/STLLoader.js":"oy60","three/examples/jsm/loaders/GLTFLoader.js":"O6i0","three/examples/jsm/loaders/ColladaLoader.js":"KAXn","three/examples/jsm/loaders/OBJLoader.js":"LkK9","../../src/urdf-manipulator-element.js":"rMic","../../src/urdf-collisionViewer-element.js":"PVJv","sortablejs":"H54I"}]},{},["H99C"], null)

@@ -317,7 +317,7 @@ input:focus {
     gap: 10px;
     width: 10%;
     overflow-y: auto;
-    height: 95%;
+    max-height: 95%;
     flex: 1;
 }
 
