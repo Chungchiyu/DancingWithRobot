@@ -362,7 +362,6 @@ video {
   width: auto;
   min-width: 480px;
   height: 60%;
-  display: flex;
   border: 1px solid #ccc;
   overflow: hidden;
 }
@@ -413,7 +412,7 @@ video {
 .cam-button {
   position: absolute;
   top: 10px;
-  right: 40px;
+  right: 60px;
   width: 30px;
   height: 30px;
   background-color: white; /* White button */
@@ -425,8 +424,16 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
-  display: none;
+  /* display: none; */
 }
 .cam-button:hover {
   background-color: gray;
+}
+
+.flipped {
+  transform: scaleX(-1);
+}
+
+#flip-button.active {
+  background-color: #0b7dda;
 }

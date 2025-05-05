@@ -47363,10 +47363,7 @@ var URDFLoader = exports.default = /*#__PURE__*/function () {
           throw new Error("URDFLoader: Failed to load url '".concat(urdfPath, "' with error code ").concat(res.status, " : ").concat(res.statusText, "."));
         }
       }).then(function (data) {
-        if (_this2.workingPath === '') {
-          _this2.workingPath = workingPath;
-        }
-        var model = _this2.parse(data);
+        var model = _this2.parse(data, _this2.workingPath || workingPath);
         onComplete(model);
         manager.itemEnd(urdfPath);
       }).catch(function (e) {
@@ -47382,11 +47379,11 @@ var URDFLoader = exports.default = /*#__PURE__*/function () {
   }, {
     key: "parse",
     value: function parse(content) {
+      var workingPath = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.workingPath;
       var packages = this.packages;
       var loadMeshCb = this.loadMeshCb;
       var parseVisual = this.parseVisual;
       var parseCollision = this.parseCollision;
-      var workingPath = this.workingPath;
       var manager = this.manager;
       var linkMap = {};
       var jointMap = {};

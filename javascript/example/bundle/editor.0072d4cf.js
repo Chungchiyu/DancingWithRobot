@@ -234,8 +234,9 @@ function updateEditorWithJointsData(jointsData) {
   if (jointsData.length > 0) {
     var formattedData = jointsData.map(function (frame, index) {
       var angles = [frame.angles.J1 || 0, frame.angles.J2 || 0, frame.angles.J3 || 0, frame.angles.J4 || 0, frame.angles.J5 || 0, frame.angles.J6 || 0];
+      duration = frame[index + 1].time - frame[index].time;
       var point = "E6AXIS P".concat(index, "={A1 ").concat(angles[0], ",A2 ").concat(angles[1], ",A3 ").concat(angles[2], ",A4 ").concat(angles[3], ",A5 ").concat(angles[4], ",A6 ").concat(angles[5], "}\n");
-      var run = "PTP P".concat(index, " CONT=60% Vel=100% Acc=100%");
+      var run = "PTP_TIME P".concat(index, " CONT TIME=").concat(duration, " Acc=100% TOOL[0] BASE[0]");
       return point + run;
     }).join('\n');
     editor.value = formattedData;

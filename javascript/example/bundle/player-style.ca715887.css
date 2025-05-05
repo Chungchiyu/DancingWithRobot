@@ -425,7 +425,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
-  display: none;
+  /* display: none; */
 }
 .cam-button:hover {
   background-color: gray;

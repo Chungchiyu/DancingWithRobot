@@ -7,6 +7,16 @@
 
     <title>TwinPose</title>
 
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "three/examples/jsm/": "/node_modules/three/examples/jsm/",
+            "sortablejs": "/node_modules/sortablejs/modular/sortable.esm.js"
+          }
+        }
+    </script>
+
     <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.4.3/webcomponents-bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -19,13 +29,6 @@
     <link href="player-style.ca715887.css" type="text/css" rel="stylesheet">
     <link href="human.54d0b0d5.css" type="text/css" rel="stylesheet">
     <link href="editor.71a79d52.css" type="text/css" rel="stylesheet">
-    <!-- <script type="importmap">
-        {
-          "imports": {
-            "three": "../node_modules/three/build/three.module.js"
-          }
-        }
-    </script> -->
     <script src="redirect.9e0f3bb7.js"></script>
     <style>.loading-screen {
             position: fixed;
@@ -78,7 +81,7 @@
                 </div>
                 <div class="close-button" id="close-button">X</div>
                 <button class="pose-button" id="pose-button">+</button>
-                <button class="cam-button" id="cam-button">+</button>
+                <button class="cam-button" id="cam-button"><i class="fa fa-video-camera"></i></button>
                 <div class="overlay"></div>
                 <div class="modal">
                     <div class="left-panel">

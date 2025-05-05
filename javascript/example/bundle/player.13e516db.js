@@ -613,7 +613,7 @@ function displayAngles(context, angles) {
 }
 function loadVideo(_x3) {
   return _loadVideo.apply(this, arguments);
-}
+} // 在文件開頭的變量聲明區域添加
 function _loadVideo() {
   _loadVideo = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee4(event) {
     var file;
@@ -654,6 +654,104 @@ function _loadVideo() {
     }, _callee4);
   }));
   return _loadVideo.apply(this, arguments);
+}
+var isWebcamActive = false;
+var webcamStream = null;
+var webcamButton = document.getElementById('cam-button');
+
+// 添加 webcam 按鈕事件監聽器
+webcamButton.addEventListener('click', toggleWebcam);
+
+// 添加 webcam 相關函數
+function toggleWebcam() {
+  return _toggleWebcam.apply(this, arguments);
+}
+function _toggleWebcam() {
+  _toggleWebcam = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
+      while (1) switch (_context5.prev = _context5.next) {
+        case 0:
+          if (isWebcamActive) {
+            _context5.next = 24;
+            break;
+          }
+          _context5.prev = 1;
+          _context5.next = 4;
+          return navigator.mediaDevices.getUserMedia({
+            video: {
+              width: {
+                ideal: 1280
+              },
+              height: {
+                ideal: 720
+              }
+            }
+          });
+        case 4:
+          webcamStream = _context5.sent;
+          video.srcObject = webcamStream;
+          video.play();
+
+          // 更新 UI
+          selectVideoButton.style.display = 'none';
+          closeButton.style.display = 'flex';
+          poseButton.style.display = 'flex';
+          canvas.style.display = 'block';
+          video.style.display = 'block';
+          document.querySelector('.controls').style.display = 'flex';
+          // webcamButton.textContent = 'Stop Webcam';
+          webcamButton.classList.add('active');
+          isWebcamActive = true;
+
+          // 設置視頻比例
+          video.addEventListener('loadedmetadata', function () {
+            videoAspectRatio = video.videoWidth / video.videoHeight;
+            resizeCanvas();
+            createLowResCanvas();
+          }, {
+            once: true
+          });
+
+          // 開始姿態估計
+          // if (poseDetectToggle.classList.contains('checked')) {
+          //   requestAnimationFrame(estimatePoses);
+          // }
+          _context5.next = 22;
+          break;
+        case 18:
+          _context5.prev = 18;
+          _context5.t0 = _context5["catch"](1);
+          console.error('Error accessing webcam:', _context5.t0);
+          alert('Unable to access webcam');
+        case 22:
+          _context5.next = 25;
+          break;
+        case 24:
+          // 停止 webcam
+          stopWebcam();
+        case 25:
+        case "end":
+          return _context5.stop();
+      }
+    }, _callee5, null, [[1, 18]]);
+  }));
+  return _toggleWebcam.apply(this, arguments);
+}
+function stopWebcam() {
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(function (track) {
+      return track.stop();
+    });
+    webcamStream = null;
+  }
+  video.srcObject = null;
+  isWebcamActive = false;
+
+  // 重置 UI
+  webcamButton.classList.remove('active');
+
+  // 使用現有的 closeVideo 函數來重置界面
+  closeVideo();
 }
 var playPauseAnimation = document.getElementById('play-pause-animation');
 canvas.addEventListener('click', togglePlayPause);
@@ -752,10 +850,10 @@ function generateThumbnails() {
   return _generateThumbnails.apply(this, arguments);
 }
 function _generateThumbnails() {
-  _generateThumbnails = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee5() {
+  _generateThumbnails = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6() {
     var duration, thumbnailCount, thumbnailCanvas, context, i, thumbnailTime, thumbnailDiv, thumbnails;
-    return _regeneratorRuntime().wrap(function _callee5$(_context5) {
-      while (1) switch (_context5.prev = _context5.next) {
+    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
+      while (1) switch (_context6.prev = _context6.next) {
         case 0:
           duration = video.duration;
           thumbnailCount = 20;
@@ -766,11 +864,11 @@ function _generateThumbnails() {
           i = 0;
         case 7:
           if (!(i < thumbnailCount)) {
-            _context5.next = 20;
+            _context6.next = 20;
             break;
           }
           thumbnailTime = i / thumbnailCount * duration;
-          _context5.next = 11;
+          _context6.next = 11;
           return setVideoCurrentTime(video, thumbnailTime);
         case 11:
           thumbnailDiv = document.createElement('div');
@@ -781,7 +879,7 @@ function _generateThumbnails() {
           thumbnailDiv.style.backgroundImage = "url(".concat(thumbnailCanvas.toDataURL(), ")");
         case 17:
           i++;
-          _context5.next = 7;
+          _context6.next = 7;
           break;
         case 20:
           loading.style.display = 'none';
@@ -792,9 +890,9 @@ function _generateThumbnails() {
           video.currentTime = 0;
         case 24:
         case "end":
-          return _context5.stop();
+          return _context6.stop();
       }
-    }, _callee5);
+    }, _callee6);
   }));
   return _generateThumbnails.apply(this, arguments);
 }
@@ -802,11 +900,11 @@ function setVideoCurrentTime(_x4, _x5) {
   return _setVideoCurrentTime.apply(this, arguments);
 }
 function _setVideoCurrentTime() {
-  _setVideoCurrentTime = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee6(video, time) {
-    return _regeneratorRuntime().wrap(function _callee6$(_context6) {
-      while (1) switch (_context6.prev = _context6.next) {
+  _setVideoCurrentTime = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(video, time) {
+    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
+      while (1) switch (_context7.prev = _context7.next) {
         case 0:
-          return _context6.abrupt("return", new Promise(function (resolve) {
+          return _context7.abrupt("return", new Promise(function (resolve) {
             video.currentTime = time;
             video.addEventListener('seeked', resolve, {
               once: true
@@ -814,9 +912,9 @@ function _setVideoCurrentTime() {
           }));
         case 1:
         case "end":
-          return _context6.stop();
+          return _context7.stop();
       }
-    }, _callee6);
+    }, _callee7);
   }));
   return _setVideoCurrentTime.apply(this, arguments);
 }
@@ -894,31 +992,31 @@ function estimatePoses(_x6) {
   return _estimatePoses.apply(this, arguments);
 }
 function _estimatePoses() {
-  _estimatePoses = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee7(refresh) {
+  _estimatePoses = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee8(refresh) {
     var currentTime, poses;
-    return _regeneratorRuntime().wrap(function _callee7$(_context7) {
-      while (1) switch (_context7.prev = _context7.next) {
+    return _regeneratorRuntime().wrap(function _callee8$(_context8) {
+      while (1) switch (_context8.prev = _context8.next) {
         case 0:
           if (!(poseDetectToggle.classList.contains('checked') && video.readyState >= 2 && poseNetLoaded || refresh)) {
-            _context7.next = 8;
+            _context8.next = 8;
             break;
           }
           currentTime = video.currentTime;
           if (!(currentTime !== lastProcessedTime || refresh)) {
-            _context7.next = 8;
+            _context8.next = 8;
             break;
           }
           lastProcessedTime = currentTime;
-          _context7.next = 6;
+          _context8.next = 6;
           return detectPose(detector, video);
         case 6:
-          poses = _context7.sent;
+          poses = _context8.sent;
           drawPoses(poses);
         case 8:
         case "end":
-          return _context7.stop();
+          return _context8.stop();
       }
-    }, _callee7);
+    }, _callee8);
   }));
   return _estimatePoses.apply(this, arguments);
 }

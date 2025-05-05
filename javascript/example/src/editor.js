@@ -120,9 +120,15 @@ function updateEditorWithJointsData(jointsData) {
                 frame.angles.J5 || 0,
                 frame.angles.J6 || 0
             ];
-
+            
             const point = `E6AXIS P${index}={A1 ${angles[0]},A2 ${angles[1]},A3 ${angles[2]},A4 ${angles[3]},A5 ${angles[4]},A6 ${angles[5]}}\n`;
-            const run = `PTP P${index} CONT=60% Vel=100% Acc=100%`;
+            let run = ``;
+            if (index > 0) {
+                let duration = Math.round((jointsData[index].time - jointsData[index-1].time) * 1000);
+                run = `PTP_TIME P${index} CONT TIME=${duration} msec Acc=100% TOOL[0] BASE[0]`;
+            } else {
+                run = `PTP P${index} CONT=60% Vel=100% Acc=100%`;
+            }
             return point + run
         }).join('\n');
 

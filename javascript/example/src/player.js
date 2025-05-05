@@ -358,6 +358,15 @@ function dotProduct(v1, v2) {
 }
 
 function displayAngles(context, angles) {
+  // Save the current state of the context
+  context.save();
+  
+  // To flip horizontally, use scale(-1, 1) and translate
+  if (isFlipped) {
+    context.translate(context.canvas.width, 0);
+    context.scale(-1, 1);
+  }
+
   context.font = '14px Arial';
   context.fillStyle = 'white';
   context.strokeStyle = 'black';
@@ -374,6 +383,9 @@ function displayAngles(context, angles) {
     context.fillText(text, 10, y);
     y += 20;
   }
+
+  // Restore the context to its original state
+  context.restore();
 }
 
 async function loadVideo(event) {
@@ -398,6 +410,115 @@ async function loadVideo(event) {
     estimatePoses();
     window.updateMarkers();
   }
+}
+
+let isWebcamActive = false;
+let webcamStream = null;
+const webcamButton = document.getElementById('cam-button');
+let originVideoSrc = '';
+
+// Add webcam button event listener
+webcamButton.addEventListener('click', toggleWebcam);
+
+// Add webcam function
+async function toggleWebcam() {
+  if (!isWebcamActive) {
+    try {
+      // Activate webcam
+      webcamStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        } 
+      });
+      
+      if (video.src !== '') {
+        originVideoSrc = video.src;
+      }
+      
+      video.srcObject = webcamStream;
+      video.play();
+      
+      // Update UI
+      selectVideoButton.style.display = 'none';
+      closeButton.style.display = 'flex';
+      poseButton.style.display = 'flex';
+      canvas.style.display = 'block';
+      video.style.display = 'block';
+      document.querySelector('.controls').style.display = 'flex';
+      webcamButton.classList.add('active');
+      
+      isWebcamActive = true;
+      
+      // Set video ratio
+      // video.addEventListener('loadedmetadata', () => {
+      //   videoAspectRatio = video.videoWidth / video.videoHeight;
+      //   resizeCanvas();
+      //   createLowResCanvas();
+      // }, { once: true });
+
+      document.querySelector('.time-container').style.display = 'none';
+      document.querySelector('.progress-container').style.display = 'none';
+      
+    } catch (err) {
+      console.error('Error accessing webcam:', err);
+      alert('Unable to access webcam');
+    }
+  } else {
+    // Stop webcam
+    stopWebcam();
+  }
+}
+
+function stopWebcam() {
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(track => track.stop());
+    webcamStream = null;
+  }
+  
+  // Reset video source
+  video.srcObject = null;
+  video.src = originVideoSrc;
+  isWebcamActive = false;
+
+  document.querySelector('.time-container').style.display = '';
+  document.querySelector('.progress-container').style.display = '';
+  
+  // Reset UI
+  webcamButton.classList.remove('active');
+
+  if (isFlipped) {
+    video.classList.remove('flipped');
+    canvas.classList.remove('flipped');
+    flipButton.classList.remove('active');
+    isFlipped = false;
+  }
+  
+  if (originVideoSrc == '') {
+    closeVideo();
+    originVideoSrc = '';
+  }
+}
+
+const flipButton = document.getElementById('flip-button');
+let isFlipped = false;
+
+flipButton.addEventListener('click', toggleFlip);
+
+function toggleFlip() {
+  isFlipped = !isFlipped;
+  
+  if (isFlipped) {
+    video.classList.add('flipped');
+    canvas.classList.add('flipped');
+    flipButton.classList.add('active');
+  } else {
+    video.classList.remove('flipped');
+    canvas.classList.remove('flipped');
+    flipButton.classList.remove('active');
+  }
+  
+  drawPoses(lastPoses);
 }
 
 const playPauseAnimation = document.getElementById('play-pause-animation');
@@ -545,17 +666,17 @@ async function setVideoCurrentTime(video, time) {
 
 function closeVideo() {
   video.pause();
-  video.src = "";
   selectVideoButton.style.display = 'flex';
   canvas.style.display = 'none';
   video.style.display = 'none';
   document.querySelector('.controls').style.display = 'none';
   closeButton.style.display = 'none';
   poseButton.style.display = 'none';
-  document.querySelector('.modal').style.display = 'none';
+  document.querySelector('.modal').style.display = '';
   const thumbnails = document.querySelectorAll('.progress-thumbnail');
   thumbnails.forEach(thumbnail => thumbnail.remove());
   progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
+  video.src = '';
 }
 
 let isDragging = false;
@@ -616,7 +737,7 @@ const maxEstimations = 5;
 
 const updatePose = document.getElementById('update-pose');
 updatePose.addEventListener('click', () => {
-  estimatePoses();
+  estimatePoses(true);
 });
 
 async function estimatePoses(refresh) {

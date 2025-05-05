@@ -7,6 +7,16 @@
 
     <title>TwinPose</title>
 
+    <script type="importmap">
+        {
+          "imports": {
+            "three": "../node_modules/three/build/three.module.js",
+            "three/examples/jsm/": "../node_modules/three/examples/jsm/",
+            "sortablejs": "../node_modules/sortablejs/modular/sortable.esm.js"
+          }
+        }
+    </script>
+
     <script src="https://unpkg.com/@webcomponents/webcomponentsjs@2.4.3/webcomponents-bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@200..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
@@ -19,13 +29,6 @@
     <link href="./player-style.css" type="text/css" rel="stylesheet" />
     <link href="./human.css" type="text/css" rel="stylesheet" />
     <link href="./editor.css" type="text/css" rel="stylesheet" />
-    <!-- <script type="importmap">
-        {
-          "imports": {
-            "three": "../node_modules/three/build/three.module.js"
-          }
-        }
-    </script> -->
     <script src="./src/redirect.js"></script>
     <style>
         .loading-screen {
@@ -71,6 +74,7 @@
                     <div class="control-buttons">
                         <button id="record-data" class="active">Record</button>
                         <button id="update-pose" class="active">Update</button>
+                        <button id="flip-button" class="">Flip Cam</button>
                         <button id="restart" class="active">Restart</button>
                     </div>
                 </div>
@@ -80,7 +84,7 @@
                 </div>
                 <div class="close-button" id="close-button">X</div>
                 <button class="pose-button" id="pose-button">+</button>
-                <button class="cam-button" id="cam-button">+</button>
+                <button class="cam-button" id="cam-button"><i class="fa fa-video-camera"></i></button>
                 <div class="overlay"></div>
                 <div class="modal">
                     <div class="left-panel">
@@ -203,7 +207,7 @@
                             <!-- <button class="waitBtn btn">Wait</button> -->
                         </div>
                         <br>
-                        <button class="fixCamBtn btn"><i class="fa fa-lock"></button>
+                        <button class="fixCamBtn btn"><i class="fa fa-lock"></i></button>
                     </div>
                 </div>
             </div>
@@ -230,14 +234,7 @@
             document.getElementById("loading").classList.add("hiddenL");
         });
     </script>
-
-    <!-- <script type="importmap">
-        {
-            "imports": {
-                "three": "../node_modules/three/build/three.module.js";
-            }
-        }
-    </script> -->
+    
     <script type="module" src="./src/index.js"></script>
     <script type="module" src="./src/human.js"></script>
     <script type="module" src="./src/player.js"></script>
