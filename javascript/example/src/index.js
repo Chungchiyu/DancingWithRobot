@@ -509,7 +509,7 @@ const addFrameCard = (index) => {
     }
 
     updateCardNumbers();
-    highlightCard(card);
+    highlightCard(card, false);
     updateMarkers();
     saveLocalData();
 
@@ -762,75 +762,81 @@ elements.fixCamBtn.addEventListener('click', () => {
 let videoVolume = 1;
 
 // keyboard functions
-document.addEventListener('keyup', function(event) {
-    if (event.key === 'Delete') {
-        const card = elements.cardContainer.querySelector('.highlighted');
-        if (card) {
-            const index = Array.from(elements.cardContainer.children).indexOf(card);
-            if (index != 0)
-                highlightCard(card.previousElementSibling);
-            else if (elements.cardContainer.childNodes.length > 1)
-                highlightCard(card.nextElementSibling);
-            window.jointsData.splice(index, 1);
-            elements.cardContainer.removeChild(card);
-            const marker = elements.progressContainer.querySelectorAll('.progress-marker');
-            elements.progressContainer.removeChild(marker[index]);
+function handleKeyPress(event) {
+    const editor = document.getElementById('editor');
+    if (!editor.onfocus) {
+        document.addEventListener('keyup', function(event) {
+            
+            if (event.key === 'Delete') {
+                const card = elements.cardContainer.querySelector('.highlighted');
+                if (card) {
+                    const index = Array.from(elements.cardContainer.children).indexOf(card);
+                    if (index != 0)
+                        highlightCard(card.previousElementSibling);
+                    else if (elements.cardContainer.childNodes.length > 1)
+                        highlightCard(card.nextElementSibling);
+                    window.jointsData.splice(index, 1);
+                    elements.cardContainer.removeChild(card);
+                    const marker = elements.progressContainer.querySelectorAll('.progress-marker');
+                    elements.progressContainer.removeChild(marker[index]);
 
-            updateCardNumbers();
-        }
+                    updateCardNumbers();
+                }
+            }
+
+            if (event.key === 'ArrowUp') {
+                const card = elements.cardContainer.querySelector('.highlighted');
+                if (card.previousElementSibling)
+                    highlightCard(card.previousElementSibling);
+
+            } else if (event.key === 'ArrowDown') {
+                const card = elements.cardContainer.querySelector('.highlighted');
+                if (card.nextElementSibling)
+                    highlightCard(card.nextElementSibling);
+            }
+
+
+            if (event.key === 'm') {
+                if (video.volume != 0) {
+                    video.volume = 0;
+                }
+                else {
+                    video.volume = videoVolume;
+                }
+            }
+
+            if (event.key === '+') {
+                video.volume += 0.1;
+                videoVolume = video.volume;
+            } else if (event.key === '-') {
+                video.volume -= 0.1;
+                videoVolume = video.volume;
+            }
+
+            if (event.key === ' ') {
+                if (video.paused)
+                    video.play();
+                else
+                    video.pause();
+            }
+
+            if (event.key === 'p') {
+                elements.animToggle.classList.toggle('checked');
+                if (elements.animToggle.classList.contains('checked')) {
+                    state.startTime = Date.now() - video.currentTime * 1e3;
+                    video.play();
+                    window.linkRobot.classList.remove('checked');
+                } else {
+                    video.pause();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft')
+                video.currentTime -= 0.1;
+            else if (event.key === 'ArrowRight')
+                video.currentTime += 0.1;
+        });
     }
-
-    if (event.key === 'ArrowUp') {
-        const card = elements.cardContainer.querySelector('.highlighted');
-        if (card.previousElementSibling)
-            highlightCard(card.previousElementSibling);
-
-    } else if (event.key === 'ArrowDown') {
-        const card = elements.cardContainer.querySelector('.highlighted');
-        if (card.nextElementSibling)
-            highlightCard(card.nextElementSibling);
-    }
-
-
-    if (event.key === 'm') {
-        if (video.volume != 0) {
-            video.volume = 0;
-        }
-        else {
-            video.volume = videoVolume;
-        }
-    }
-
-    if (event.key === '+') {
-        video.volume += 0.1;
-        videoVolume = video.volume;
-    } else if (event.key === '-') {
-        video.volume -= 0.1;
-        videoVolume = video.volume;
-    }
-
-    if (event.key === ' ') {
-        if (video.paused)
-            video.play();
-        else
-            video.pause();
-    }
-
-    if (event.key === 'p') {
-        elements.animToggle.classList.toggle('checked');
-        if (elements.animToggle.classList.contains('checked')) {
-            state.startTime = Date.now() - video.currentTime * 1e3;
-            video.play();
-            window.linkRobot.classList.remove('checked');
-        } else {
-            video.pause();
-        }
-    }
-});
-
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'ArrowLeft')
-        video.currentTime -= 0.1;
-    else if (event.key === 'ArrowRight')
-        video.currentTime += 0.1;
-});
+}

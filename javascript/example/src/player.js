@@ -49,7 +49,7 @@ async function initPoseDetector() {
 
 async function detectPose(detector, video) {
   return await detector.estimatePoses(video, {
-    flipHorizontal: false
+    flipHorizontal: isFlipped
   });
 }
 
@@ -76,7 +76,12 @@ selectVideoButton.addEventListener('click', () => fileInput.click());
 fileInput.addEventListener('change', loadVideo);
 // playPauseButton.addEventListener('click', playPause);
 restartButton.addEventListener('click', restart);
-closeButton.addEventListener('click', closeVideo);
+closeButton.addEventListener('click', () => {
+  if (isWebcamActive)
+    stopWebcam();
+  else
+    closeVideo();
+});
 
 poseDetectToggle.addEventListener('click', () => {
   poseDetectToggle.classList.toggle('checked');
@@ -175,10 +180,11 @@ function drawPoses(poses) {
     });
 
     const angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
-    displayAngles(ctx, angles);
 
     const remapAngles = angleMapping(angles, window.groups[window.selectedGroup].data);
     lastPoseAngles = remapAngles;
+
+    displayAngles(ctx, angles);
 
     if (linkRobot.classList.contains('checked')) {
       Object.keys(window.viewer.robot.joints).slice(0, 6).map((jointName, index) => {
@@ -187,7 +193,7 @@ function drawPoses(poses) {
     }
   }
 
-  console.log('estimation');
+  // console.log('estimation');
 
   // if (poses.length > 0) {
   //   const pose = poses[0];
@@ -257,7 +263,7 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
         if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
           angles[key] = calculateAngle(a, b, c, undefined, value.is3D);
         } else {
-          console.warn(`Low confidence for angle ${key}, skipping calculation`);
+          // console.warn(`Low confidence for angle ${key}, skipping calculation`);
         }
       } else if (points.length === 4) {
         // Handle 4-point case
@@ -265,11 +271,11 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
         if (a.score > 0.2 && b.score > 0.2 && c.score > 0.2 && d.score > 0.2) {
           angles[key] = calculateAngle(a, b, c, d);
         } else {
-          console.warn(`Low confidence for angle ${key}, skipping calculation`);
+          // console.warn(`Low confidence for angle ${key}, skipping calculation`);
         }
       }
     } else {
-      console.warn(`Invalid number of points for angle ${key}, expected 3 or 4 but got ${points.length}`);
+      // console.warn(`Invalid number of points for angle ${key}, expected 3 or 4 but got ${points.length}`);
     }
   });
   return angles;
@@ -358,14 +364,6 @@ function dotProduct(v1, v2) {
 }
 
 function displayAngles(context, angles) {
-  // Save the current state of the context
-  context.save();
-  
-  // To flip horizontally, use scale(-1, 1) and translate
-  if (isFlipped) {
-    context.translate(context.canvas.width, 0);
-    context.scale(-1, 1);
-  }
 
   context.font = '14px Arial';
   context.fillStyle = 'white';
@@ -378,20 +376,39 @@ function displayAngles(context, angles) {
   context.fillText(text, 10, y);
   y += 20;
   for (const [name, angle] of Object.entries(angles)) {
-    const text = `${name}: ${angle.toFixed(1)}°`;
+    const text = `A${name[1]}: ${angle.toFixed(1)}°`;
     context.strokeText(text, 10, y);
     context.fillText(text, 10, y);
     y += 20;
   }
 
-  // Restore the context to its original state
-  context.restore();
+  // Right side display
+  y = 30;
+  
+  const groupText = `Projections`;
+  const groupTextWidth = context.measureText(groupText).width;
+  
+  context.strokeText(groupText, canvas.width - groupTextWidth - 10, y);
+  context.fillText(groupText, canvas.width - groupTextWidth - 10, y);
+  y += 20;
+  
+  for (const [name, angle] of Object.entries(lastPoseAngles)) {
+    const text = `${name}: ${angle.toFixed(1)}°`;
+    const textWidth = context.measureText(text).width;
+    context.strokeText(text, canvas.width - textWidth - 10, y);
+    context.fillText(text, canvas.width - textWidth - 10, y);
+    y += 20;
+  }
+
 }
+
+let isVideoLoaded = false;
 
 async function loadVideo(event) {
   const file = event.target.files[0];
   if (file) {
     video.src = URL.createObjectURL(file);
+    isVideoLoaded = true;
     loading.style.display = 'block';
     canvas.style.display = 'none';
     selectVideoButton.style.display = 'none';
@@ -415,7 +432,6 @@ async function loadVideo(event) {
 let isWebcamActive = false;
 let webcamStream = null;
 const webcamButton = document.getElementById('cam-button');
-let originVideoSrc = '';
 
 // Add webcam button event listener
 webcamButton.addEventListener('click', toggleWebcam);
@@ -425,20 +441,16 @@ async function toggleWebcam() {
   if (!isWebcamActive) {
     try {
       // Activate webcam
-      webcamStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
+      webcamStream = await navigator.mediaDevices.getUserMedia({
+        video: {
           width: { ideal: 1280 },
           height: { ideal: 720 }
-        } 
+        }
       });
-      
-      if (video.src !== '') {
-        originVideoSrc = video.src;
-      }
-      
+
       video.srcObject = webcamStream;
       video.play();
-      
+
       // Update UI
       selectVideoButton.style.display = 'none';
       closeButton.style.display = 'flex';
@@ -447,9 +459,9 @@ async function toggleWebcam() {
       video.style.display = 'block';
       document.querySelector('.controls').style.display = 'flex';
       webcamButton.classList.add('active');
-      
+
       isWebcamActive = true;
-      
+
       // Set video ratio
       // video.addEventListener('loadedmetadata', () => {
       //   videoAspectRatio = video.videoWidth / video.videoHeight;
@@ -459,7 +471,7 @@ async function toggleWebcam() {
 
       document.querySelector('.time-container').style.display = 'none';
       document.querySelector('.progress-container').style.display = 'none';
-      
+
     } catch (err) {
       console.error('Error accessing webcam:', err);
       alert('Unable to access webcam');
@@ -475,28 +487,26 @@ function stopWebcam() {
     webcamStream.getTracks().forEach(track => track.stop());
     webcamStream = null;
   }
-  
+
   // Reset video source
   video.srcObject = null;
-  video.src = originVideoSrc;
   isWebcamActive = false;
 
   document.querySelector('.time-container').style.display = '';
   document.querySelector('.progress-container').style.display = '';
-  
+
   // Reset UI
   webcamButton.classList.remove('active');
 
   if (isFlipped) {
     video.classList.remove('flipped');
-    canvas.classList.remove('flipped');
+    // canvas.classList.remove('flipped');
     flipButton.classList.remove('active');
     isFlipped = false;
   }
-  
-  if (originVideoSrc == '') {
+
+  if (!isVideoLoaded) {
     closeVideo();
-    originVideoSrc = '';
   }
 }
 
@@ -505,19 +515,23 @@ let isFlipped = false;
 
 flipButton.addEventListener('click', toggleFlip);
 
-function toggleFlip() {
+async function toggleFlip() {
   isFlipped = !isFlipped;
-  
+
+  console.log('isFlipped', isFlipped);
+
   if (isFlipped) {
     video.classList.add('flipped');
-    canvas.classList.add('flipped');
+    // canvas.classList.add('flipped');
     flipButton.classList.add('active');
   } else {
     video.classList.remove('flipped');
-    canvas.classList.remove('flipped');
+    // canvas.classList.remove('flipped');
     flipButton.classList.remove('active');
   }
-  
+
+  detector = await initPoseDetector();
+
   drawPoses(lastPoses);
 }
 
@@ -666,6 +680,8 @@ async function setVideoCurrentTime(video, time) {
 
 function closeVideo() {
   video.pause();
+  video.src = '';
+  isVideoLoaded = false;
   selectVideoButton.style.display = 'flex';
   canvas.style.display = 'none';
   video.style.display = 'none';
@@ -676,7 +692,6 @@ function closeVideo() {
   const thumbnails = document.querySelectorAll('.progress-thumbnail');
   thumbnails.forEach(thumbnail => thumbnail.remove());
   progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
-  video.src = '';
 }
 
 let isDragging = false;
@@ -807,3 +822,245 @@ document.addEventListener('keydown', function (event) {
     event.preventDefault();
   }
 });
+
+const autoRecordButton = document.getElementById('scatter-data');
+
+// Create interval settings that appear on hover
+const intervalSettings = document.createElement('div');
+intervalSettings.className = 'interval-settings';
+intervalSettings.innerHTML = `
+  <label for="record-interval">Interval (sec):</label>
+  <input type="number" id="record-interval" min="0.01" max="10" step="0.1" value="1">
+`;
+intervalSettings.style.display = 'none';
+document.querySelector('.controls').appendChild(intervalSettings);
+
+// Add CSS for components
+const style = document.createElement('style');
+style.textContent = `
+.interval-settings {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  bottom: 60px;
+  right: 60%;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.interval-settings.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.interval-settings input {
+  width: 60px;
+  margin-left: 5px;
+  padding: 2px 5px;
+}
+
+.progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.progress-message {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.cancel-button {
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.cancel-button:hover {
+  background-color: #cc0000;
+}
+`;
+document.head.appendChild(style);
+
+// Setup hover behavior with timers
+let hideTimeout;
+
+// Show settings on hover
+autoRecordButton.addEventListener('mouseenter', () => {
+  clearTimeout(hideTimeout);
+  intervalSettings.classList.add('visible');
+});
+
+// Setup hover detection for both elements
+autoRecordButton.addEventListener('mouseleave', () => {
+  clearTimeout(hideTimeout);
+  hideTimeout = setTimeout(() => {
+    if (!isHovering(intervalSettings)) {
+      intervalSettings.classList.remove('visible');
+    }
+  }, 500); // 0.5秒延遲
+});
+
+intervalSettings.addEventListener('mouseenter', () => {
+  clearTimeout(hideTimeout);
+});
+
+intervalSettings.addEventListener('mouseleave', () => {
+  clearTimeout(hideTimeout);
+  hideTimeout = setTimeout(() => {
+    if (!isHovering(autoRecordButton)) {
+      intervalSettings.classList.remove('visible');
+    }
+  }, 500); // 0.5秒延遲
+});
+
+// Helper function to check if element is being hovered
+function isHovering(element) {
+  return element.matches(':hover');
+}
+
+// Show/hide interval settings on hover
+autoRecordButton.addEventListener('mouseenter', () => {
+  intervalSettings.style.display = 'block';
+});
+
+// Track if recording is in progress and create cancel handler
+let isRecording = false;
+let shouldCancel = false;
+
+// Add the auto record functionality
+autoRecordButton.addEventListener('click', () => {
+  // Check if already recording
+  if (isRecording) {
+    return;
+  }
+  
+  // Check if the pose detection is enabled
+  if (!poseDetectToggle.classList.contains('checked')) {
+    alert('Please enable pose detection before recording');
+    return;
+  }
+  
+  // Get interval value
+  const interval = parseFloat(document.getElementById('record-interval').value);
+  if (isNaN(interval) || interval <= 0) {
+    alert('Please enter a valid interval value');
+    return;
+  }
+  
+  // Pause video during the process
+  video.pause();
+  
+  // Create a progress indicator with cancel button
+  const progressOverlay = document.createElement('div');
+  progressOverlay.className = 'progress-overlay';
+  progressOverlay.innerHTML = `
+    <div class="progress-message">Scattering Data... <span id="progress-percent">0%</span></div>
+    <button id="cancel-recording" class="cancel-button">Cancel</button>
+  `;
+  document.body.appendChild(progressOverlay);
+  
+  // Add cancel button handler
+  document.getElementById('cancel-recording').addEventListener('click', () => {
+    shouldCancel = true;
+  });
+  
+  // Start the auto recording process
+  isRecording = true;
+  shouldCancel = false;
+  autoRecordProcess(interval);
+});
+
+// Function to automatically record data throughout the video
+async function autoRecordProcess(interval) {
+  try {
+    // Clear existing markers if needed
+    progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
+    
+    // Clear existing data
+    window.jointsData = [];
+    
+    // Get video duration
+    const duration = video.duration;
+    const totalFrames = Math.floor(duration / interval);
+    let processedFrames = 0;
+    
+    // Process each frame
+    for (let time = 0; time <= duration; time += interval) {
+      // Check if user wants to cancel
+      if (shouldCancel) {
+        break;
+      }
+      
+      // Set video to specific time
+      await setVideoCurrentTime(video, time);
+      
+      // Estimate poses for current frame
+      await estimatePoses(true);
+      
+      // Record data if pose detection is valid
+      if (lastPoseAngles && Object.keys(lastPoseAngles).length > 0) {
+        window.recordData(lastPoseAngles);
+      }
+      
+      // Update progress
+      processedFrames++;
+      const percentage = Math.floor((processedFrames / totalFrames) * 100);
+      const progressElement = document.getElementById('progress-percent');
+      if (progressElement) {
+        progressElement.textContent = `${percentage}%`;
+      }
+      
+      // Small delay to allow UI updates
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    
+    // Show completion message
+    if (!shouldCancel) {
+      alert(`Finished recording ${window.jointsData.length} poses!`);
+    } else {
+      alert(`Cancelled! ${window.jointsData.length} poses recorded.`);
+    }
+    
+  } catch (error) {
+    console.error('An error occurred during the auto-recording process:', error);
+    alert('An error occurred during the recording process. Please check the console for details.');
+  } finally {
+    // Always clean up
+    isRecording = false;
+    shouldCancel = false;
+    
+    // Remove progress overlay
+    const overlay = document.querySelector('.progress-overlay');
+    if (overlay) {
+      document.body.removeChild(overlay);
+    }
+    
+    // Return to beginning of video
+    video.currentTime = 0;
+    
+    // Call update for frame cards if that function exists
+    if (typeof window.updateMarkers === 'function') {
+      window.updateMarkers();
+    }
+  }
+}

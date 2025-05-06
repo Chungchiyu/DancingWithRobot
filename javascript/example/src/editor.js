@@ -19,6 +19,7 @@ showEditorBtn.addEventListener('click', () => {
     updateEditorWithJointsData(window.jointsData);
     editorContainer.classList.add('expanded');
     showEditorBtn.style.display = 'none';
+    adjustEditorToContentWidth();
 });
 
 editorHeader.addEventListener('click', (e) => {
@@ -39,6 +40,58 @@ downloadBtn.addEventListener('click', () => {
     document.body.removeChild(a);
 });
 
+function adjustEditorToContentWidth() {
+    // 創建測量用元素
+    const measurer = document.createElement('span');
+    measurer.style.visibility = 'hidden';
+    measurer.style.position = 'absolute';
+    measurer.style.whiteSpace = 'pre';  // 保持空格
+    measurer.style.font = getComputedStyle(editor).font;
+    document.body.appendChild(measurer);
+    
+    // 計算最長行寬度
+    let maxWidth = 0;
+    editor.value.split('\n').forEach(line => {
+        measurer.textContent = line;
+        maxWidth = Math.max(maxWidth, measurer.offsetWidth);
+    });
+    
+    // 清理測量元素
+    document.body.removeChild(measurer);
+    
+    // 計算總寬度（加上行號寬度和一些邊距）
+    const lineNumbersWidth = 40;  // 行號欄寬度
+    const padding = 40;  // 額外邊距
+    
+    // 設置新寬度（確保在合理範圍內）
+    let newWidth = maxWidth + lineNumbersWidth + padding;
+    newWidth = Math.max(245, Math.min(newWidth, window.innerWidth * 0.9));
+    editorContainer.style.width = `${newWidth}px`;
+}
+
+// 更新內容後也調整寬度
+// function updateEditorWithJointsData(jointsData) {
+//     if (jointsData.length > 0) {
+//         // 現有的格式化代碼...
+        
+//         editor.value = formattedData;
+//         updateLineNumbers();
+        
+//         // 如果編輯器已展開，調整寬度
+//         if (editorContainer.classList.contains('expanded')) {
+//             adjustEditorToContentWidth();
+//         }
+//     }
+// }
+
+// 輸入時也調整寬度
+editor.addEventListener('input', () => {
+    updateLineNumbers();
+    if (editorContainer.classList.contains('expanded')) {
+        adjustEditorToContentWidth();
+    }
+});
+
 editor.addEventListener('keydown', function (e) {
     if (e.ctrlKey && e.key === '/') {
         e.preventDefault();
@@ -49,10 +102,10 @@ editor.addEventListener('keydown', function (e) {
         let endLine = this.value.substr(0, end).split('\n').length - 1;
 
         for (let i = startLine; i <= endLine; i++) {
-            if (lines[i].startsWith('// ')) {
+            if (lines[i].startsWith('; ')) {
                 lines[i] = lines[i].substr(3);
             } else {
-                lines[i] = '// ' + lines[i];
+                lines[i] = '; ' + lines[i];
             }
         }
 
@@ -121,6 +174,7 @@ function updateEditorWithJointsData(jointsData) {
                 frame.angles.J6 || 0
             ];
             
+            const comment = `; <Pose ${index}>\n`;
             const point = `E6AXIS P${index}={A1 ${angles[0]},A2 ${angles[1]},A3 ${angles[2]},A4 ${angles[3]},A5 ${angles[4]},A6 ${angles[5]}}\n`;
             let run = ``;
             if (index > 0) {
@@ -129,11 +183,15 @@ function updateEditorWithJointsData(jointsData) {
             } else {
                 run = `PTP P${index} CONT=60% Vel=10% Acc=100%`;
             }
-            return point + run
+            return comment + point + run + `\n`
         }).join('\n');
 
         editor.value = formattedData;
         updateLineNumbers();
+        
+        if (editorContainer.classList.contains('expanded')) {
+            adjustEditorToContentWidth();
+        }
     }
 }
 
