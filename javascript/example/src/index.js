@@ -619,6 +619,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 elements.clearBtn.addEventListener('click', () => {
+    clearALLCards();
+});
+
+window.clearALLCards = () => {
     elements.cardContainer.innerHTML = "";
     elements.animToggle.classList.remove('checked');
     elements.progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
@@ -626,7 +630,7 @@ elements.clearBtn.addEventListener('click', () => {
     window.selectGroup(0);
     window.groups.splice(1, window.groups.length - 1);
     window.updateGroups();
-});
+}
 
 elements.homeBtn.addEventListener('click', () => {
     var joint = new Array(6).fill(0);

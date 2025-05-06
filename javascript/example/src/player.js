@@ -384,14 +384,14 @@ function displayAngles(context, angles) {
 
   // Right side display
   y = 30;
-  
+
   const groupText = `Projections`;
   const groupTextWidth = context.measureText(groupText).width;
-  
+
   context.strokeText(groupText, canvas.width - groupTextWidth - 10, y);
   context.fillText(groupText, canvas.width - groupTextWidth - 10, y);
   y += 20;
-  
+
   for (const [name, angle] of Object.entries(lastPoseAngles)) {
     const text = `${name}: ${angle.toFixed(1)}°`;
     const textWidth = context.measureText(text).width;
@@ -953,23 +953,34 @@ autoRecordButton.addEventListener('click', () => {
   if (isRecording) {
     return;
   }
-  
+
   // Check if the pose detection is enabled
   if (!poseDetectToggle.classList.contains('checked')) {
     alert('Please enable pose detection before recording');
     return;
   }
-  
+
   // Get interval value
   const interval = parseFloat(document.getElementById('record-interval').value);
   if (isNaN(interval) || interval <= 0) {
     alert('Please enter a valid interval value');
     return;
   }
-  
+
+  // Check if there are existing records and confirm before clearing
+  if (window.jointsData && window.jointsData.length > 0) {
+    if (confirm(`There are already ${window.jointsData.length} recorded points. Do you want to clear the existing records and continue? Clicking "OK" will clear all existing records.`)) {
+      // Clear ALL cards and data
+      window.clearALLCards();
+    } else {
+      // User cancelled, return without recording
+      return;
+    }
+  }
+
   // Pause video during the process
   video.pause();
-  
+
   // Create a progress indicator with cancel button
   const progressOverlay = document.createElement('div');
   progressOverlay.className = 'progress-overlay';
@@ -978,12 +989,12 @@ autoRecordButton.addEventListener('click', () => {
     <button id="cancel-recording" class="cancel-button">Cancel</button>
   `;
   document.body.appendChild(progressOverlay);
-  
+
   // Add cancel button handler
   document.getElementById('cancel-recording').addEventListener('click', () => {
     shouldCancel = true;
   });
-  
+
   // Start the auto recording process
   isRecording = true;
   shouldCancel = false;
@@ -995,52 +1006,53 @@ async function autoRecordProcess(interval) {
   try {
     // Clear existing markers if needed
     progressContainer.querySelectorAll('.progress-marker').forEach(mark => mark.remove());
-    
+
     // Clear existing data
     window.jointsData = [];
-    
+
     // Get video duration
     const duration = video.duration;
     const totalFrames = Math.floor(duration / interval);
     let processedFrames = 0;
-    
+
     // Process each frame
     for (let time = 0; time <= duration; time += interval) {
       // Check if user wants to cancel
       if (shouldCancel) {
         break;
       }
-      
+
       // Set video to specific time
       await setVideoCurrentTime(video, time);
-      
+
       // Estimate poses for current frame
       await estimatePoses(true);
-      
+
       // Record data if pose detection is valid
       if (lastPoseAngles && Object.keys(lastPoseAngles).length > 0) {
         window.recordData(lastPoseAngles);
       }
-      
+
       // Update progress
       processedFrames++;
-      const percentage = Math.floor((processedFrames / totalFrames) * 100);
+      let percentage = Math.floor((processedFrames / totalFrames) * 100);
+      if (percentage > 100) percentage = 100;
       const progressElement = document.getElementById('progress-percent');
       if (progressElement) {
         progressElement.textContent = `${percentage}%`;
       }
-      
+
       // Small delay to allow UI updates
       await new Promise(resolve => setTimeout(resolve, 10));
     }
-    
+
     // Show completion message
     if (!shouldCancel) {
       alert(`Finished recording ${window.jointsData.length} poses!`);
     } else {
       alert(`Cancelled! ${window.jointsData.length} poses recorded.`);
     }
-    
+
   } catch (error) {
     console.error('An error occurred during the auto-recording process:', error);
     alert('An error occurred during the recording process. Please check the console for details.');
@@ -1048,16 +1060,16 @@ async function autoRecordProcess(interval) {
     // Always clean up
     isRecording = false;
     shouldCancel = false;
-    
+
     // Remove progress overlay
     const overlay = document.querySelector('.progress-overlay');
     if (overlay) {
       document.body.removeChild(overlay);
     }
-    
+
     // Return to beginning of video
     video.currentTime = 0;
-    
+
     // Call update for frame cards if that function exists
     if (typeof window.updateMarkers === 'function') {
       window.updateMarkers();
