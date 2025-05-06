@@ -127,7 +127,7 @@ function updateEditorWithJointsData(jointsData) {
                 let duration = Math.round((jointsData[index].time - jointsData[index-1].time) * 1000);
                 run = `PTP_TIME P${index} CONT TIME=${duration} msec Acc=100% TOOL[0] BASE[0]`;
             } else {
-                run = `PTP P${index} CONT=60% Vel=100% Acc=100%`;
+                run = `PTP P${index} CONT=60% Vel=10% Acc=100%`;
             }
             return point + run
         }).join('\n');
