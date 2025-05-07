@@ -85,6 +85,60 @@
     line-height: 1.5;
 }
 
+/* 簡潔的代碼編輯器滾動條 */
+
+/* 整體滾動條 - 非常細的設計 */
+#editor::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+  }
+  
+  /* 滾動條軌道 - 幾乎不可見 */
+  #editor::-webkit-scrollbar-track {
+    background: rgba(30, 30, 30, 0.2);
+    border-radius: 4px;
+  }
+  
+  /* 滾動條游標 - 簡潔設計 */
+  #editor::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+    border: 1px solid rgba(20, 20, 20, 0.5);
+  }
+  
+  /* 游標懸停效果 */
+  #editor::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
+  /* 游標按下效果 */
+  #editor::-webkit-scrollbar-thumb:active {
+    background: #666;
+  }
+  
+  /* 隱藏滾動條按鈕和角落 */
+  #editor::-webkit-scrollbar-button,
+  #editor::-webkit-scrollbar-corner {
+    display: none;
+  }
+  
+  /* Firefox 支持 */
+  #editor {
+    /* scrollbar-width: thin; */
+    scrollbar-color: #444 transparent;
+  }
+  
+  /* 讓滾動條在不滾動時變得半透明 */
+  #editor:not(:hover)::-webkit-scrollbar-thumb {
+    background: rgba(68, 68, 68, 0.6);
+  }
+  
+  /* 滾動時顯示完整不透明度的滾動條 */
+  #editor:hover::-webkit-scrollbar-thumb {
+    background: rgba(68, 68, 68, 1);
+  }
+
 .line-numbers {
     position: absolute;
     top: 0;

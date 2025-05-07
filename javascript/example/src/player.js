@@ -188,7 +188,8 @@ function drawPoses(poses) {
 
     if (linkRobot.classList.contains('checked')) {
       Object.keys(window.viewer.robot.joints).slice(0, 6).map((jointName, index) => {
-        window.viewer.setJointValue(jointName, Object.entries(remapAngles)[index][1] * DEG2RAD);
+          if (!window.lockJoints[index].classList.contains('locked'))
+            window.viewer.setJointValue(jointName, Object.entries(remapAngles)[index][1] * DEG2RAD);
       });
     }
   }
@@ -429,7 +430,7 @@ async function loadVideo(event) {
   }
 }
 
-let isWebcamActive = false;
+window.isWebcamActive = false;
 let webcamStream = null;
 const webcamButton = document.getElementById('cam-button');
 
@@ -557,7 +558,7 @@ function togglePlayPause() {
 }
 
 function restart() {
-  video.currentTime = 0;
+  vidTimeProxy.value = 0;
   video.play();
   requestAnimationFrame(estimatePoses);
 }
@@ -603,7 +604,7 @@ window.addMarkerToProgressBar = (time) => {
       event.stopPropagation();
     });
     event.stopPropagation();
-    video.currentTime = time;
+    vidTimeProxy.value = time;
     updateProgress();
   });
 }
@@ -638,7 +639,7 @@ function updateProgressWithEvent(e) {
   const x = e.clientX - rect.left;
   const width = rect.width;
   const newTime = (x / width) * video.duration;
-  video.currentTime = newTime;
+  vidTimeProxy.value = newTime;
   estimatePoses();
 }
 
@@ -668,12 +669,13 @@ async function generateThumbnails() {
   const thumbnails = document.querySelectorAll('.progress-thumbnail');
   thumbnails.forEach(thumbnail => thumbnail.style.display = 'block');
 
-  video.currentTime = 0;
+  vidTimeProxy.value = 0;
+  
 }
 
 async function setVideoCurrentTime(video, time) {
   return new Promise(resolve => {
-    video.currentTime = time;
+    vidTimeProxy.value = time;
     video.addEventListener('seeked', resolve, { once: true });
   });
 }
@@ -1068,7 +1070,8 @@ async function autoRecordProcess(interval) {
     }
 
     // Return to beginning of video
-    video.currentTime = 0;
+    vidTimeProxy.value = 0;
+    
 
     // Call update for frame cards if that function exists
     if (typeof window.updateMarkers === 'function') {

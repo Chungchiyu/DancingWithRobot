@@ -35,7 +35,8 @@ const elements = {
     clearBtn: document.querySelector(".clearBtn"),
     homeBtn: document.querySelector('.homeBtn'),
     fixCamBtn: document.querySelector('.fixCamBtn'),
-    waitBtn: document.querySelector('.waitBtn')
+    waitBtn: document.querySelector('.waitBtn'),
+    vidTime: document.getElementById('vidTime')
 };
 
 // Constants
@@ -192,6 +193,17 @@ viewer.addEventListener('urdf-processed', () => {
         });
 });
 
+window.vidTimeProxy = new Proxy({ value: vidTime }, {
+    set(target, prop, newValue) {
+        if (prop === 'value') {
+        console.log(`vidTime changed to: ${newValue}`);
+        video.currentTime = newValue;
+        }
+        target[prop] = newValue;
+        return true;
+    }
+});
+
 // Animation functions
 const updateArmPosition = () => {
     const currentTime = (Date.now() - state.startTime) / 1e3;
@@ -228,11 +240,12 @@ const updateArmPosition = () => {
         if (currentTime > window.jointsData[window.jointsData.length - 1].time) {
             highlightCard(elements.cardContainer.childNodes[window.jointsData.length - 1], false);
             if (state.loop) {
-                video.currentTime = window.jointsData[0].time;
-                state.startTime = Date.now() - video.currentTime * 1e3;
+                vidTimeProxy.value = window.jointsData[0].time;
+                state.startTime = Date.now() - vidTimeProxy.value * 1e3;
             } else {
                 elements.animToggle.classList.toggle('checked');
-                video.pause();
+                if (!window.isWebcamActive) 
+                    video.pause();
             }
         }
     }
@@ -301,11 +314,15 @@ document.addEventListener('WebComponentsReady', () => {
     elements.animToggle.addEventListener('click', () => {
         elements.animToggle.classList.toggle('checked');
         if (elements.animToggle.classList.contains('checked')) {
-            state.startTime = Date.now() - video.currentTime * 1e3;
-            video.play();
+            if (!window.isWebcamActive) {
+                video.play();
+                vidTimeProxy.value = video.currentTime;
+            }
+            state.startTime = Date.now() - vidTimeProxy.value * 1e3;
             window.linkRobot.classList.remove('checked');
         } else {
-            video.pause();
+            if (!window.isWebcamActive)
+                video.pause();
         }
     });
 
@@ -479,6 +496,7 @@ const addFrameCard = (index) => {
     card.querySelector('input').addEventListener('blur', (event) => {
         const newTime = parseFloat(event.target.value);
         const currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+        vidTimeProxy.value = newTime;
         updateJointsData(currentIndex, { time: newTime });
     });
     
@@ -533,7 +551,7 @@ const highlightCard = (card, updateVidTime = true) => {
     const index = Array.from(card.parentNode.children).indexOf(card);
     const cardData = window.jointsData[index];
     if (updateVidTime)
-        video.currentTime = parseFloat(card.querySelector('input').value);
+        vidTimeProxy.value = parseFloat(card.querySelector('input').value);
     Object.entries(cardData.angles).forEach(([joint, angle]) => {
         const joint_name = joint.replace('J', 'joint_');
         viewer.setJointValue(joint_name, angle * DEG2RAD);
@@ -554,7 +572,7 @@ elements.copyBtn.addEventListener('click', () => {
     );
 
     const newCardData = {
-        time: Math.round(video.currentTime * 100) / 100,
+        time: Math.round(vidTimeProxy.value * 100) / 100,
         group: window.groupNameSelected,
         angles: jointAngles
     };
@@ -827,7 +845,7 @@ function handleKeyPress(event) {
             if (event.key === 'p') {
                 elements.animToggle.classList.toggle('checked');
                 if (elements.animToggle.classList.contains('checked')) {
-                    state.startTime = Date.now() - video.currentTime * 1e3;
+                    state.startTime = Date.now() - vidTimeProxy.value * 1e3;
                     video.play();
                     window.linkRobot.classList.remove('checked');
                 } else {
@@ -838,9 +856,9 @@ function handleKeyPress(event) {
 
         document.addEventListener('keydown', function(event) {
             if (event.key === 'ArrowLeft')
-                video.currentTime -= 0.1;
+                vidTimeProxy.value -= 0.1;
             else if (event.key === 'ArrowRight')
-                video.currentTime += 0.1;
+                vidTimeProxy.value += 0.1;
         });
     }
 }

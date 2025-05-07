@@ -277,6 +277,9 @@ function updateAngle() {
         line2.setAttribute('stroke-width', '6');
         svg.appendChild(line2);
     }
+
+    updateButton.classList.remove('saved');
+    updateButton.textContent = 'update';
 }
 
 function drawAngle(p1, p2, p3, angle, color, isExteriorAngle) {
@@ -342,20 +345,34 @@ for (let i = 0; i < 6; i++) {
 }
 
 // Create update button
-const updateButton = document.createElement('button');
-updateButton.textContent = 'Update';
-updateButton.style.position = 'absolute';
-updateButton.style.right = '10px';
-updateButton.style.bottom = '10px';
+const updateButton = document.getElementById('buttonUpdate');
+
 updateButton.addEventListener('click', (e) => {
     e.stopPropagation();
     saveAngle();
     saveMappingData();
     updateButton.textContent = 'saved';
+    updateButton.classList.add('saved');
     groups[selectedGroup].data[`J${selectedButton + 1}`].is3D = is3D;
     window.saveLocalData();
 });
-figure.appendChild(updateButton);
+
+const MirrorButton = document.getElementById('buttonMirror');
+const symmetricPairs = [
+    [6, 1], [5, 2], [4, 3], [8, 7], // 頭部
+    [12, 11],                      // 肩膀
+    [14, 13],                      // 上臂
+    [16, 15], [18, 17], [20, 19], [22, 21], // 手指
+    [24, 23],                      // 腰部
+    [26, 25],                      // 大腿
+    [28, 27],                      // 小腿
+    [32, 31], [30, 29]            // 腳
+  ];
+
+MirrorButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    MirrorButton.classList.toggle('active');
+});
 
 function loadAngleFromButtonContent(content) {
     // Parse the content and load the angle
@@ -938,3 +955,56 @@ button3D.addEventListener('click', (e) => {
 
 // Set initial state to 3D
 // buttonSlider.style.transform = 'translateY(40px)';
+
+window.lockJoints = document.querySelectorAll('.lock-joint');
+
+lockJoints.forEach((joint) => {
+    joint.addEventListener('click', (e) => {
+        if (joint.dataset.preventClick) {
+            delete joint.dataset.preventClick;
+            return;
+        }
+        e.stopPropagation();
+        joint.classList.toggle('locked');
+    });
+
+    joint.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        lockJoints.forEach((joint) => {
+            joint.classList.add('locked');
+        });
+        joint.classList.remove('locked');
+    });
+
+    let pressTimer;
+
+    joint.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent the mouseup event from being interpreted as a click
+        e.stopPropagation();
+        pressTimer = setTimeout(() => {
+            lockJoints.forEach((joint) => {
+                joint.classList.remove('locked');
+            });
+            joint.classList.add('locked');
+            joint.dataset.preventClick = true; // Prevent click after long press
+        }, 500); // 1 second long press
+    });
+
+    joint.addEventListener('mouseup', (e) => {
+        e.preventDefault(); // Prevent the mouseup event from being interpreted as a click
+        e.stopPropagation();
+        clearTimeout(pressTimer);
+    });
+
+    joint.addEventListener('mouseleave', (e) => {
+        e.stopPropagation();
+        clearTimeout(pressTimer);
+    });
+
+    joint.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        lockJoints.forEach((joint) => {
+            joint.classList.remove('locked');
+        });
+    });
+});
