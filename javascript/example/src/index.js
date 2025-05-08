@@ -206,7 +206,11 @@ window.vidTimeProxy = new Proxy({ value: vidTime }, {
 
 // Animation functions
 const updateArmPosition = () => {
-    const currentTime = (Date.now() - state.startTime) / 1e3;
+    var currentTime;
+    if (!isWebcamActive)
+        currentTime = (Date.now() - state.startTime) / 1e3;
+    else
+        currentTime = video.currentTime;
 
     console.log(currentTime);
 

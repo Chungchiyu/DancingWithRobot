@@ -938,7 +938,7 @@ function toggleButton(button) {
 }
 
 function updateIs3D(index) {
-    const is3D = groups[selectedGroup].data[`J${index + 1}`].is3D;
+    is3D = groups[selectedGroup].data[`J${index + 1}`].is3D;
     buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
     if (!is3D) {
         button2D.classList.add('active');

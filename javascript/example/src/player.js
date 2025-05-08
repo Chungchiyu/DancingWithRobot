@@ -114,10 +114,13 @@ function resizeCanvas() {
 
   let canvasWidth, canvasHeight;
 
+  // video height reach containerHeight limit
   if (containerWidth / containerHeight > videoAspectRatio) {
     canvasHeight = containerHeight;
     canvasWidth = canvasHeight * videoAspectRatio;
-  } else {
+  } 
+  // video width reach containerWidth limit
+  else {
     canvasWidth = containerWidth;
     canvasHeight = canvasWidth / videoAspectRatio;
   }
@@ -125,8 +128,9 @@ function resizeCanvas() {
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
 
-  canvas.style.position = 'absolute';
+  // canvas.style.position = 'absolute';
   canvas.style.top = `${(containerHeight - canvasHeight) / 2}px`;
+  canvas.style.left = `${(containerWidth - canvasWidth) / 2}px`;
 
   if (lastPoses.length > 0) {
     drawPoses(lastPoses);
@@ -401,7 +405,7 @@ function displayAngles(context, angles) {
   context.strokeStyle = 'black';
   context.lineWidth = 3;
 
-  let y = 30;
+  let y = 0.07 * canvas.height;
   const text = `Group: ${window.groupNameSelected}`;
   context.strokeText(text, 10, y);
   context.fillText(text, 10, y);
@@ -414,8 +418,7 @@ function displayAngles(context, angles) {
   }
 
   // Right side display
-  y = 30;
-
+  y = 0.07 * canvas.height;
   const groupText = `Projections`;
   const groupTextWidth = context.measureText(groupText).width;
 
@@ -862,7 +865,7 @@ const intervalSettings = document.createElement('div');
 intervalSettings.className = 'interval-settings';
 intervalSettings.innerHTML = `
   <label for="capture-interval">Interval (sec):</label>
-  <input type="number" id="capture-interval" min="0.01" max="10" step="0.1" value="1">
+  <input type="number" id="capture-interval" min="0.01" max="10" value="1">
 `;
 intervalSettings.style.display = 'none';
 document.querySelector('.controls').appendChild(intervalSettings);
@@ -876,7 +879,8 @@ style.textContent = `
   padding: 10px;
   border-radius: 5px;
   bottom: 60px;
-  right: 60%;
+  left: 50%;
+  transform: translateX(-50%);
   color: white;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -889,9 +893,17 @@ style.textContent = `
 }
 
 .interval-settings input {
-  width: 60px;
+  -webkit-appearance: none;
+  width: 30px;
   margin-left: 5px;
   padding: 2px 5px;
+}
+
+#capture-interval::-webkit-outer-spin-button,
+#capture-interval::-webkit-inner-spin-button {
+  -webkit-appearance: none; /* 隱藏 WebKit 瀏覽器中的上下按鈕 */
+  -moz-appearance: textfield; /* 隱藏 Firefox 中的上下按鈕 */
+  appearance: none; /* 標準屬性，適用於支持的瀏覽器 */
 }
 
 .progress-overlay {
@@ -934,22 +946,25 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Setup hover behavior with timers
-let hideTimeout;
+let hideTimeout, showTimeout;
 
 // Show settings on hover
 autoCaptureButton.addEventListener('mouseenter', () => {
+  showTimeout = setTimeout(() => {
+      intervalSettings.classList.add('visible');
+  }, 200); // 0.2s delay
   clearTimeout(hideTimeout);
-  intervalSettings.classList.add('visible');
 });
 
 // Setup hover detection for both elements
 autoCaptureButton.addEventListener('mouseleave', () => {
   clearTimeout(hideTimeout);
+  clearTimeout(showTimeout);
   hideTimeout = setTimeout(() => {
     if (!isHovering(intervalSettings)) {
       intervalSettings.classList.remove('visible');
     }
-  }, 500); // 0.5秒延遲
+  }, 500); // 0.5s delay
 });
 
 intervalSettings.addEventListener('mouseenter', () => {
