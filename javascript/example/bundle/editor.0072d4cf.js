@@ -150,6 +150,7 @@ showEditorBtn.addEventListener('click', function () {
   updateEditorWithJointsData(window.jointsData);
   editorContainer.classList.add('expanded');
   showEditorBtn.style.display = 'none';
+  adjustEditorToContentWidth();
 });
 editorHeader.addEventListener('click', function (e) {
   if (e.target === editorHeader) {
@@ -169,6 +170,57 @@ downloadBtn.addEventListener('click', function () {
   a.click();
   document.body.removeChild(a);
 });
+function adjustEditorToContentWidth() {
+  // 創建測量用元素
+  var measurer = document.createElement('span');
+  measurer.style.visibility = 'hidden';
+  measurer.style.position = 'absolute';
+  measurer.style.whiteSpace = 'pre'; // 保持空格
+  measurer.style.font = getComputedStyle(editor).font;
+  document.body.appendChild(measurer);
+
+  // 計算最長行寬度
+  var maxWidth = 0;
+  editor.value.split('\n').forEach(function (line) {
+    measurer.textContent = line;
+    maxWidth = Math.max(maxWidth, measurer.offsetWidth);
+  });
+
+  // 清理測量元素
+  document.body.removeChild(measurer);
+
+  // 計算總寬度（加上行號寬度和一些邊距）
+  var lineNumbersWidth = 40; // 行號欄寬度
+  var padding = 40; // 額外邊距
+
+  // 設置新寬度（確保在合理範圍內）
+  var newWidth = maxWidth + lineNumbersWidth + padding;
+  newWidth = Math.max(245, Math.min(newWidth, window.innerWidth * 0.9));
+  editorContainer.style.width = "".concat(newWidth, "px");
+}
+
+// 更新內容後也調整寬度
+// function updateEditorWithJointsData(jointsData) {
+//     if (jointsData.length > 0) {
+//         // 現有的格式化代碼...
+
+//         editor.value = formattedData;
+//         updateLineNumbers();
+
+//         // 如果編輯器已展開，調整寬度
+//         if (editorContainer.classList.contains('expanded')) {
+//             adjustEditorToContentWidth();
+//         }
+//     }
+// }
+
+// 輸入時也調整寬度
+editor.addEventListener('input', function () {
+  updateLineNumbers();
+  if (editorContainer.classList.contains('expanded')) {
+    adjustEditorToContentWidth();
+  }
+});
 editor.addEventListener('keydown', function (e) {
   if (e.ctrlKey && e.key === '/') {
     e.preventDefault();
@@ -178,10 +230,10 @@ editor.addEventListener('keydown', function (e) {
     var startLine = this.value.substr(0, start).split('\n').length - 1;
     var endLine = this.value.substr(0, end).split('\n').length - 1;
     for (var i = startLine; i <= endLine; i++) {
-      if (lines[i].startsWith('// ')) {
+      if (lines[i].startsWith('; ')) {
         lines[i] = lines[i].substr(3);
       } else {
-        lines[i] = '// ' + lines[i];
+        lines[i] = '; ' + lines[i];
       }
     }
     this.value = lines.join('\n');
@@ -234,13 +286,22 @@ function updateEditorWithJointsData(jointsData) {
   if (jointsData.length > 0) {
     var formattedData = jointsData.map(function (frame, index) {
       var angles = [frame.angles.J1 || 0, frame.angles.J2 || 0, frame.angles.J3 || 0, frame.angles.J4 || 0, frame.angles.J5 || 0, frame.angles.J6 || 0];
-      duration = frame[index + 1].time - frame[index].time;
+      var comment = "; <Pose ".concat(index, ">\n");
       var point = "E6AXIS P".concat(index, "={A1 ").concat(angles[0], ",A2 ").concat(angles[1], ",A3 ").concat(angles[2], ",A4 ").concat(angles[3], ",A5 ").concat(angles[4], ",A6 ").concat(angles[5], "}\n");
-      var run = "PTP_TIME P".concat(index, " CONT TIME=").concat(duration, " Acc=100% TOOL[0] BASE[0]");
-      return point + run;
+      var run = "";
+      if (index > 0) {
+        var duration = Math.round((jointsData[index].time - jointsData[index - 1].time) * 1000);
+        run = "PTP_TIME P".concat(index, " CONT TIME=").concat(duration, " msec Acc=100% TOOL[0] BASE[0]");
+      } else {
+        run = "PTP P".concat(index, " CONT=60% Vel=10% Acc=100%");
+      }
+      return comment + point + run + "\n";
     }).join('\n');
     editor.value = formattedData;
     updateLineNumbers();
+    if (editorContainer.classList.contains('expanded')) {
+      adjustEditorToContentWidth();
+    }
   }
 }
 function setupJointsDataProxy() {
