@@ -10,9 +10,9 @@
     <script type="importmap">
         {
           "imports": {
-            "three": "/node_modules/three/build/three.module.js",
-            "three/examples/jsm/": "/node_modules/three/examples/jsm/",
-            "sortablejs": "/node_modules/sortablejs/modular/sortable.esm.js"
+            "three": "./javascript/node_modules/three/build/three.module.js",
+            "three/examples/jsm/": "./javascript/node_modules/three/examples/jsm/",
+            "sortablejs": "./javascript/node_modules/sortablejs/modular/sortable.esm.js"
           }
         }
     </script>
@@ -25,11 +25,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet">
-    <link href="styles.8986bff4.css" type="text/css" rel="stylesheet">
-    <link href="player-style.ca715887.css" type="text/css" rel="stylesheet">
-    <link href="human.54d0b0d5.css" type="text/css" rel="stylesheet">
-    <link href="editor.71a79d52.css" type="text/css" rel="stylesheet">
-    <script src="redirect.9e0f3bb7.js"></script>
+    <link href="/styles.4468b596.css" type="text/css" rel="stylesheet">
+    <link href="/player-style.48f6ca4a.css" type="text/css" rel="stylesheet">
+    <link href="/human.38d4953c.css" type="text/css" rel="stylesheet">
+    <link href="/editor.116f259e.css" type="text/css" rel="stylesheet">
+    <script src="/redirect.b1d56232.js"></script>
     <style>.loading-screen {
             position: fixed;
             top: 0;
@@ -71,7 +71,9 @@
                     </div>
                     <div class="control-buttons">
                         <button id="record-data" class="active">Record</button>
+                        <button id="scatter-data" class="active">Scatter</button>
                         <button id="update-pose" class="active">Update</button>
+                        <button id="flip-button" class="">Flip Cam</button>
                         <button id="restart" class="active">Restart</button>
                     </div>
                 </div>
@@ -88,28 +90,34 @@
                         <div id="angleProjections" class="frame">
                             <h2>Angle Projections</h2>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J1</div>
+                                <div class="angleCard-label">A1</div>
                                 <div class="angleCard-content">12,11,LH</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J2</div>
+                                <div class="angleCard-label">A2</div>
                                 <div class="angleCard-content">12,24,DV</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J3</div>
+                                <div class="angleCard-label">A3</div>
                                 <div class="angleCard-content">24,12,14</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J4</div>
+                                <div class="angleCard-label">A4</div>
                                 <div class="angleCard-content">12,14,16</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J5</div>
+                                <div class="angleCard-label">A5</div>
                                 <div class="angleCard-content">14,16,20</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                             <div class="angleCard AC">
-                                <div class="angleCard-label">J6</div>
+                                <div class="angleCard-label">A6</div>
                                 <div class="angleCard-content">22,16,20</div>
+                                <i class="fa fa-lock lock-joint"></i>
                             </div>
                         </div>
                         <div id="groups" class="frame">
@@ -127,12 +135,14 @@
                                 <button class="button-23d active" id="button2D">2D</button>
                                 <button class="button-23d" id="button3D">3D</button>
                             </div>
+                            <button id="buttonMirror">Mirror</button>
+                            <button id="buttonUpdate">Update</button>
                         </div>
                         <div id="angleMappingControls">
                             <div class="mapping-group">
                                 <!-- <h6>姿態角度範圍</h6> -->
                                 <div class="slider-wrapper">
-                                    <img src="elbow.2cdf2345.png" class="image">
+                                    <img src="/elbow.e0ced55c.png" class="image">
                                     <input type="number" class="range-input min" value="0">
                                     <div id="postureSlider" class="slider-container"></div>
                                     <input type="number" class="range-input max" value="360">
@@ -141,7 +151,7 @@
                             <div class="mapping-group">
                                 <!-- <h6>手臂角度範圍</h6> -->
                                 <div class="slider-wrapper">
-                                    <img src="robotic-arm.e97b6aaf.png" class="image">
+                                    <img src="/robotic-arm.83893b4b.png" class="image">
                                     <input type="number" class="range-input min" value="0">
                                     <div id="armSlider" class="slider-container"></div>
                                     <input type="number" class="range-input max" value="360">
@@ -157,6 +167,7 @@
             </div>
         </div>
         <input type="file" id="file-input" accept="video/*" style="display: none;">
+        <input type="number" id="vidTime" step="0.001" value="0" style="display: none;">
         <div class="divider">
             <div class="handle"></div>
         </div>
@@ -229,18 +240,11 @@
     <script>window.addEventListener("load", function () {
   document.getElementById("loading").classList.add("hiddenL");
 });</script>
-
-    <!-- <script type="importmap">
-        {
-            "imports": {
-                "three": "../node_modules/three/build/three.module.js";
-            }
-        }
-    </script> -->
-    <script type="module" src="src.a2b27638.js"></script>
-    <script type="module" src="human.a77fcb94.js"></script>
-    <script type="module" src="player.13e516db.js"></script>
-    <script type="module" src="editor.0072d4cf.js"></script>
+    
+    <script type="module" src="/src.8a1e850d.js"></script>
+    <script type="module" src="/human.bbaff541.js"></script>
+    <script type="module" src="/player.9ca45447.js"></script>
+    <script type="module" src="/editor.b9f89296.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
 </body>
