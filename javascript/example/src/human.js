@@ -354,25 +354,27 @@ updateButton.addEventListener('click', (e) => {
     updateButton.textContent = 'saved';
     updateButton.classList.add('saved');
     groups[selectedGroup].data[`J${selectedButton + 1}`].is3D = is3D;
+    groups[selectedGroup].data[`J${selectedButton + 1}`].isMirror = isMirror;
     window.saveLocalData();
 });
 
-const MirrorButton = document.getElementById('buttonMirror');
-const symmetricPairs = [
-    [6, 1], [5, 2], [4, 3], [8, 7], // 頭部
-    [12, 11],                      // 肩膀
-    [14, 13],                      // 上臂
-    [16, 15], [18, 17], [20, 19], [22, 21], // 手指
-    [24, 23],                      // 腰部
-    [26, 25],                      // 大腿
-    [28, 27],                      // 小腿
-    [32, 31], [30, 29]            // 腳
-  ];
+const mirrorButton = document.getElementById('buttonMirror');
+let isMirror = false;
 
-MirrorButton.addEventListener('click', (e) => {
+mirrorButton.addEventListener('click', (e) => {
     e.stopPropagation();
-    MirrorButton.classList.toggle('active');
+    mirrorButton.classList.toggle('active');
+    isMirror = mirrorButton.classList.contains('active');
 });
+
+function updateIsMirror(index) {
+    isMirror = groups[selectedGroup].data[`J${index + 1}`].isMirror;
+    if (isMirror) {
+        mirrorButton.classList.add('active');
+    } else {
+        mirrorButton.classList.remove('active');
+    }
+}
 
 function loadAngleFromButtonContent(content) {
     // Parse the content and load the angle
@@ -483,7 +485,8 @@ function selectAngleButton(index) {
     }
 
     updateMappingData(groups[selectedGroup].data[`J${index + 1}`].mappingData);
-    updateIs3D();
+    updateIs3D(index);
+    updateIsMirror(index);
 
     if (['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> currentAngleData.includes(r)))
         button2D.disabled = true;
@@ -563,9 +566,11 @@ const initGroups = () => {
         defaultGroup.data[`J${index + 1}`] = {
             angles: content,
             mappingData: { ...defaultAxisValues[`J${index + 1}`] },
-            is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> content.includes(r))
+            is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> content.includes(r)),
+            isMirror: false
         };
     });
+    defaultGroup.data.J3.isMirror = true; // J3 is always mirror
     groups.push(defaultGroup);
     updateGroups();
 }
@@ -582,7 +587,8 @@ function addGroup() {
         groupData[`J${i}`] = {
             angles: cardContent,
             mappingData: { ...defaultAxisValues[`J${i}`] },
-            is3D: false
+            is3D: false,
+            isMirror: false
         };
     }
 
@@ -931,8 +937,8 @@ function toggleButton(button) {
         button2D.disabled = false;
 }
 
-function updateIs3D() {
-    const is3D = groups[selectedGroup].data[`J${selectedButton + 1}`].is3D;
+function updateIs3D(index) {
+    const is3D = groups[selectedGroup].data[`J${index + 1}`].is3D;
     buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
     if (!is3D) {
         button2D.classList.add('active');
