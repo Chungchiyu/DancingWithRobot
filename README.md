@@ -1,22 +1,11 @@
-# urdf-loaders
+# TwinPose
 
-URDF loading code in both [C# for Unity](./unity/Assets/URDFLoader/) and [Javascript for THREE.js](./javascript/), as well as example [JPL ATHLETE](https://en.wikipedia.org/wiki/ATHLETE) URDF files
+[Go to TwinPose Page](https://twinpose.space/javascript/example/bundle/index.html)
 
-[Demo Here!](https://gkjohnson.github.io/urdf-loaders/javascript/example/bundle/)
+## What is TwinPose
+TwinPose 是一個將人體舞蹈姿態通過影像辨識轉換成機械手臂的模擬編輯器，提供使用者簡單易懂的介面，以設計與機械手臂交互的舞蹈或姿勢。
 
-![Example](./unity/Assets/docs/asset%20store/all-urdfs.png)
+## How to Use
 
-### Flipped Models
-
-The `_flipped` variants of the URDF ATHLETE models invert the revolute joint axes to model ATHLETE in a configuration with the legs attached to the bottom of the chassis.
-
-# LICENSE
-
-The software is available under the [Apache V2.0 license](./LICENSE).
-
-Copyright © 2020 California Institute of Technology. ALL RIGHTS
-RESERVED. United States Government Sponsorship Acknowledged.
-Neither the name of Caltech nor its operating division, the
-Jet Propulsion Laboratory, nor the names of its contributors may be
-used to endorse or promote products derived from this software
-without specific prior written permission.
+### Developer
+Nick Chung
