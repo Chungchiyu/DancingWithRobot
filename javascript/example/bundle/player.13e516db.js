@@ -268,11 +268,11 @@ poseDetectToggle.addEventListener('click', function () {
   poseDetectToggle.classList.toggle('checked');
   if (poseDetectToggle.classList.contains('checked')) {
     canvas.style.display = '';
-    recordDataButton.classList.add('active');
+    captureDataButton.classList.add('active');
     estimatePoses();
   } else {
     canvas.style.display = 'none';
-    recordDataButton.classList.remove('active');
+    captureDataButton.classList.remove('active');
   }
 });
 linkRobot.addEventListener('click', function () {
@@ -417,6 +417,9 @@ function calculateAllAngles(keypoints3D) {
     var points = value.angles.split(',').map(function (id) {
       return id.trim();
     });
+    var points_mirrorred = mirrorPoints(points);
+    // console.log('points', points, points_mirrorred);
+
     if (points.length === 3 || points.length === 4) {
       if (points.length === 3) {
         var _points$map = points.map(function (i) {
@@ -432,8 +435,29 @@ function calculateAllAngles(keypoints3D) {
           a = _points$map2[0],
           b = _points$map2[1],
           c = _points$map2[2];
+        // if (value.isMirror) {
+        var _points_mirrorred$map = points_mirrorred.map(function (i) {
+            if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
+            return keypoints3D[parseInt(i)] || {
+              x: 0,
+              y: 0,
+              z: 0,
+              score: 0
+            };
+          }),
+          _points_mirrorred$map2 = _slicedToArray(_points_mirrorred$map, 3),
+          a1 = _points_mirrorred$map2[0],
+          b1 = _points_mirrorred$map2[1],
+          c1 = _points_mirrorred$map2[2];
+        // }
         if (a.score > 0.2 && b.score > 0.2 || typeof c === 'string') {
-          angles[key] = calculateAngle(a, b, c, undefined, value.is3D);
+          if (value.isMirror) {
+            var angle1 = calculateAngle(a, b, c, undefined, value.is3D);
+            var angle2 = calculateAngle(a1, b1, c1, undefined, value.is3D);
+            angles[key] = compareAngleSize(angle1, angle2);
+          } else {
+            angles[key] = calculateAngle(a, b, c, undefined, value.is3D);
+          }
         } else {
           // console.warn(`Low confidence for angle ${key}, skipping calculation`);
         }
@@ -452,8 +476,27 @@ function calculateAllAngles(keypoints3D) {
           _b = _points$map4[1],
           _c = _points$map4[2],
           d = _points$map4[3];
+        var _points$map5 = points.map(function (i) {
+            return keypoints3D[parseInt(i)] || {
+              x: 0,
+              y: 0,
+              z: 0,
+              score: 0
+            };
+          }),
+          _points$map6 = _slicedToArray(_points$map5, 4),
+          _a2 = _points$map6[0],
+          _b2 = _points$map6[1],
+          _c2 = _points$map6[2],
+          d1 = _points$map6[3];
         if (_a.score > 0.2 && _b.score > 0.2 && _c.score > 0.2 && d.score > 0.2) {
-          angles[key] = calculateAngle(_a, _b, _c, d);
+          if (value.isMirror) {
+            var _angle = calculateAngle(_a, _b, _c, d);
+            var _angle2 = calculateAngle(_a2, _b2, _c2, d1);
+            angles[key] = compareAngleSize(_angle, _angle2);
+          } else {
+            angles[key] = calculateAngle(_a, _b, _c, d);
+          }
         } else {
           // console.warn(`Low confidence for angle ${key}, skipping calculation`);
         }
@@ -563,8 +606,8 @@ function calculateAngle(A, B, C, D, is3D) {
     var _dotProduct = AB.x * CD.x + AB.y * CD.y + AB.z * CD.z;
     var magnitudeAB = Math.sqrt(AB.x * AB.x + AB.y * AB.y + AB.z * AB.z);
     var magnitudeCD = Math.sqrt(CD.x * CD.x + CD.y * CD.y + CD.z * CD.z);
-    var _angle = Math.acos(_dotProduct / (magnitudeAB * magnitudeCD));
-    return _angle * (180 / Math.PI); // Convert to degrees
+    var _angle3 = Math.acos(_dotProduct / (magnitudeAB * magnitudeCD));
+    return _angle3 * (180 / Math.PI); // Convert to degrees
   }
 }
 function calculateAngle2D(v1, v2) {
@@ -572,6 +615,13 @@ function calculateAngle2D(v1, v2) {
   var det = v1.x * v2.y - v1.y * v2.x;
   var angle = Math.atan2(det, dot) * (180 / Math.PI);
   return Math.abs(angle); // Always return positive angle for 2D
+}
+function compareAngleSize(angle1, angle2) {
+  if (angle1 > angle2) {
+    return angle1;
+  } else {
+    return angle2;
+  }
 }
 function calculateAngleBetweenVectors(v1, v2) {
   // Calculate dot product
@@ -625,8 +675,8 @@ function displayAngles(context, angles) {
   for (var _i2 = 0, _Object$entries2 = Object.entries(lastPoseAngles); _i2 < _Object$entries2.length; _i2++) {
     var _Object$entries2$_i = _slicedToArray(_Object$entries2[_i2], 2),
       _name = _Object$entries2$_i[0],
-      _angle2 = _Object$entries2$_i[1];
-    var _text2 = "".concat(_name, ": ").concat(_angle2.toFixed(1), "\xB0");
+      _angle4 = _Object$entries2$_i[1];
+    var _text2 = "".concat(_name, ": ").concat(_angle4.toFixed(1), "\xB0");
     var textWidth = context.measureText(_text2).width;
     context.strokeText(_text2, canvas.width - textWidth - 10, y);
     context.fillText(_text2, canvas.width - textWidth - 10, y);
@@ -839,12 +889,12 @@ function restart() {
   video.play();
   requestAnimationFrame(estimatePoses);
 }
-var recordDataButton = document.getElementById('record-data');
+var captureDataButton = document.getElementById('capture-data');
 window.jointsData = [];
-recordDataButton.addEventListener('click', function () {
-  if (recordDataButton.classList.contains('active')) recordData(lastPoseAngles);
+captureDataButton.addEventListener('click', function () {
+  if (captureDataButton.classList.contains('active')) captureData(lastPoseAngles);
 });
-window.recordData = function (poseAngles) {
+window.captureData = function (poseAngles) {
   var currentTime = Math.round(video.currentTime * 100) / 100;
   var newData = {
     time: currentTime,
@@ -1126,7 +1176,7 @@ function formatTime(seconds) {
 document.addEventListener('keyup', function (event) {
   if (event.key === 'Tab') {
     event.preventDefault();
-    if (poseDetectToggle.classList.contains('checked')) recordData(lastPoseAngles);
+    if (poseDetectToggle.classList.contains('checked')) captureData(lastPoseAngles);
   }
 });
 document.addEventListener('keydown', function (event) {
@@ -1134,12 +1184,12 @@ document.addEventListener('keydown', function (event) {
     event.preventDefault();
   }
 });
-var autoRecordButton = document.getElementById('scatter-data');
+var autoCaptureButton = document.getElementById('scatter-data');
 
 // Create interval settings that appear on hover
 var intervalSettings = document.createElement('div');
 intervalSettings.className = 'interval-settings';
-intervalSettings.innerHTML = "\n  <label for=\"record-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"record-interval\" min=\"0.01\" max=\"10\" step=\"0.1\" value=\"1\">\n";
+intervalSettings.innerHTML = "\n  <label for=\"capture-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"capture-interval\" min=\"0.01\" max=\"10\" step=\"0.1\" value=\"1\">\n";
 intervalSettings.style.display = 'none';
 document.querySelector('.controls').appendChild(intervalSettings);
 
@@ -1152,13 +1202,13 @@ document.head.appendChild(style);
 var hideTimeout;
 
 // Show settings on hover
-autoRecordButton.addEventListener('mouseenter', function () {
+autoCaptureButton.addEventListener('mouseenter', function () {
   clearTimeout(hideTimeout);
   intervalSettings.classList.add('visible');
 });
 
 // Setup hover detection for both elements
-autoRecordButton.addEventListener('mouseleave', function () {
+autoCaptureButton.addEventListener('mouseleave', function () {
   clearTimeout(hideTimeout);
   hideTimeout = setTimeout(function () {
     if (!isHovering(intervalSettings)) {
@@ -1172,7 +1222,7 @@ intervalSettings.addEventListener('mouseenter', function () {
 intervalSettings.addEventListener('mouseleave', function () {
   clearTimeout(hideTimeout);
   hideTimeout = setTimeout(function () {
-    if (!isHovering(autoRecordButton)) {
+    if (!isHovering(autoCaptureButton)) {
       intervalSettings.classList.remove('visible');
     }
   }, 500); // 0.5秒延遲
@@ -1184,41 +1234,41 @@ function isHovering(element) {
 }
 
 // Show/hide interval settings on hover
-autoRecordButton.addEventListener('mouseenter', function () {
+autoCaptureButton.addEventListener('mouseenter', function () {
   intervalSettings.style.display = 'block';
 });
 
-// Track if recording is in progress and create cancel handler
-var isRecording = false;
+// Track if capturing is in progress and create cancel handler
+var isCapturing = false;
 var shouldCancel = false;
 
-// Add the auto record functionality
-autoRecordButton.addEventListener('click', function () {
-  // Check if already recording
-  if (isRecording) {
+// Add the auto capture functionality
+autoCaptureButton.addEventListener('click', function () {
+  // Check if already capturing
+  if (isCapturing) {
     return;
   }
 
   // Check if the pose detection is enabled
   if (!poseDetectToggle.classList.contains('checked')) {
-    alert('Please enable pose detection before recording');
+    alert('Please enable pose detection before capturing');
     return;
   }
 
   // Get interval value
-  var interval = parseFloat(document.getElementById('record-interval').value);
+  var interval = parseFloat(document.getElementById('capture-interval').value);
   if (isNaN(interval) || interval <= 0) {
     alert('Please enter a valid interval value');
     return;
   }
 
-  // Check if there are existing records and confirm before clearing
+  // Check if there are existing captures and confirm before clearing
   if (window.jointsData && window.jointsData.length > 0) {
-    if (confirm("There are already ".concat(window.jointsData.length, " recorded points. Do you want to clear the existing records and continue? Clicking \"OK\" will clear all existing records."))) {
+    if (confirm("There are already ".concat(window.jointsData.length, " captured points. Do you want to clear the existing captures and continue? Clicking \"OK\" will clear all existing captures."))) {
       // Clear ALL cards and data
       window.clearALLCards();
     } else {
-      // User cancelled, return without recording
+      // User cancelled, return without capturing
       return;
     }
   }
@@ -1229,26 +1279,26 @@ autoRecordButton.addEventListener('click', function () {
   // Create a progress indicator with cancel button
   var progressOverlay = document.createElement('div');
   progressOverlay.className = 'progress-overlay';
-  progressOverlay.innerHTML = "\n    <div class=\"progress-message\">Scattering Data... <span id=\"progress-percent\">0%</span></div>\n    <button id=\"cancel-recording\" class=\"cancel-button\">Cancel</button>\n  ";
+  progressOverlay.innerHTML = "\n    <div class=\"progress-message\">Scattering Data... <span id=\"progress-percent\">0%</span></div>\n    <button id=\"cancel-capturing\" class=\"cancel-button\">Cancel</button>\n  ";
   document.body.appendChild(progressOverlay);
 
   // Add cancel button handler
-  document.getElementById('cancel-recording').addEventListener('click', function () {
+  document.getElementById('cancel-capturing').addEventListener('click', function () {
     shouldCancel = true;
   });
 
-  // Start the auto recording process
-  isRecording = true;
+  // Start the auto capturing process
+  isCapturing = true;
   shouldCancel = false;
-  autoRecordProcess(interval);
+  autoCaptureProcess(interval);
 });
 
-// Function to automatically record data throughout the video
-function autoRecordProcess(_x7) {
-  return _autoRecordProcess.apply(this, arguments);
+// Function to automatically capture data throughout the video
+function autoCaptureProcess(_x7) {
+  return _autoCaptureProcess.apply(this, arguments);
 }
-function _autoRecordProcess() {
-  _autoRecordProcess = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee10(interval) {
+function _autoCaptureProcess() {
+  _autoCaptureProcess = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee10(interval) {
     var duration, totalFrames, processedFrames, time, percentage, progressElement, overlay;
     return _regeneratorRuntime().wrap(function _callee10$(_context10) {
       while (1) switch (_context10.prev = _context10.next) {
@@ -1284,9 +1334,9 @@ function _autoRecordProcess() {
           _context10.next = 14;
           return estimatePoses(true);
         case 14:
-          // Record data if pose detection is valid
+          // capture data if pose detection is valid
           if (lastPoseAngles && Object.keys(lastPoseAngles).length > 0) {
-            window.recordData(lastPoseAngles);
+            window.captureData(lastPoseAngles);
           }
 
           // Update progress
@@ -1310,21 +1360,21 @@ function _autoRecordProcess() {
         case 25:
           // Show completion message
           if (!shouldCancel) {
-            alert("Finished recording ".concat(window.jointsData.length, " poses!"));
+            alert("Finished capturing ".concat(window.jointsData.length, " poses!"));
           } else {
-            alert("Cancelled! ".concat(window.jointsData.length, " poses recorded."));
+            alert("Cancelled! ".concat(window.jointsData.length, " poses captured."));
           }
           _context10.next = 32;
           break;
         case 28:
           _context10.prev = 28;
           _context10.t0 = _context10["catch"](0);
-          console.error('An error occurred during the auto-recording process:', _context10.t0);
-          alert('An error occurred during the recording process. Please check the console for details.');
+          console.error('An error occurred during the auto-capturing process:', _context10.t0);
+          alert('An error occurred during the capturing process. Please check the console for details.');
         case 32:
           _context10.prev = 32;
           // Always clean up
-          isRecording = false;
+          isCapturing = false;
           shouldCancel = false;
 
           // Remove progress overlay
@@ -1347,6 +1397,35 @@ function _autoRecordProcess() {
       }
     }, _callee10, null, [[0, 28, 32, 40]]);
   }));
-  return _autoRecordProcess.apply(this, arguments);
+  return _autoCaptureProcess.apply(this, arguments);
 }
+var symmetricPairs = [["6", "3"], ["5", "2"], ["4", "1"], ["8", "7"], ["10", "9"],
+// head
+["12", "11"],
+// shoulders
+["14", "13"],
+// arm
+["16", "15"], ["18", "17"], ["20", "19"], ["22", "21"],
+// hands
+["24", "23"],
+// waist
+["26", "25"],
+// thigh
+["28", "27"],
+// legs
+["32", "31"], ["30", "29"],
+// feet
+["RH", "LH"]];
+window.mirrorPoints = function (points) {
+  return points.map(function (point) {
+    for (var _i3 = 0, _symmetricPairs = symmetricPairs; _i3 < _symmetricPairs.length; _i3++) {
+      var _symmetricPairs$_i = _slicedToArray(_symmetricPairs[_i3], 2),
+        a = _symmetricPairs$_i[0],
+        b = _symmetricPairs$_i[1];
+      if (point === a) return b;
+      if (point === b) return a;
+    }
+    return point;
+  });
+};
 },{}]},{},["KcYi"], null)

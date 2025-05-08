@@ -606,29 +606,24 @@ updateButton.addEventListener('click', function (e) {
   updateButton.textContent = 'saved';
   updateButton.classList.add('saved');
   groups[selectedGroup].data["J".concat(selectedButton + 1)].is3D = is3D;
+  groups[selectedGroup].data["J".concat(selectedButton + 1)].isMirror = isMirror;
   window.saveLocalData();
 });
-var MirrorButton = document.getElementById('buttonMirror');
-var symmetricPairs = [[6, 1], [5, 2], [4, 3], [8, 7],
-// 頭部
-[12, 11],
-// 肩膀
-[14, 13],
-// 上臂
-[16, 15], [18, 17], [20, 19], [22, 21],
-// 手指
-[24, 23],
-// 腰部
-[26, 25],
-// 大腿
-[28, 27],
-// 小腿
-[32, 31], [30, 29] // 腳
-];
-MirrorButton.addEventListener('click', function (e) {
+var mirrorButton = document.getElementById('buttonMirror');
+var isMirror = false;
+mirrorButton.addEventListener('click', function (e) {
   e.stopPropagation();
-  MirrorButton.classList.toggle('active');
+  mirrorButton.classList.toggle('active');
+  isMirror = mirrorButton.classList.contains('active');
 });
+function updateIsMirror(index) {
+  isMirror = groups[selectedGroup].data["J".concat(index + 1)].isMirror;
+  if (isMirror) {
+    mirrorButton.classList.add('active');
+  } else {
+    mirrorButton.classList.remove('active');
+  }
+}
 function loadAngleFromButtonContent(content) {
   // Parse the content and load the angle
   var pointIds = content.split(',').map(function (id) {
@@ -742,7 +737,8 @@ function selectAngleButton(index) {
     }
   }
   updateMappingData(groups[selectedGroup].data["J".concat(index + 1)].mappingData);
-  updateIs3D();
+  updateIs3D(index);
+  updateIsMirror(index);
   if (['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(function (r) {
     return currentAngleData.includes(r);
   })) button2D.disabled = true;
@@ -876,9 +872,11 @@ var initGroups = function initGroups() {
       mappingData: _objectSpread({}, defaultAxisValues["J".concat(index + 1)]),
       is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(function (r) {
         return content.includes(r);
-      })
+      }),
+      isMirror: false
     };
   });
+  defaultGroup.data.J3.isMirror = true; // J3 is always mirror
   groups.push(defaultGroup);
   updateGroups();
 };
@@ -893,7 +891,8 @@ function addGroup() {
     groupData["J".concat(_i)] = {
       angles: cardContent,
       mappingData: _objectSpread({}, defaultAxisValues["J".concat(_i)]),
-      is3D: false
+      is3D: false,
+      isMirror: false
     };
   }
   groups.push({
@@ -1194,8 +1193,8 @@ function toggleButton(button) {
   }
   if (button === button2D) button2D.disabled = false;
 }
-function updateIs3D() {
-  var is3D = groups[selectedGroup].data["J".concat(selectedButton + 1)].is3D;
+function updateIs3D(index) {
+  var is3D = groups[selectedGroup].data["J".concat(index + 1)].is3D;
   buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
   if (!is3D) {
     button2D.classList.add('active');
