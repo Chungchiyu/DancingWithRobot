@@ -52484,7 +52484,8 @@ var elements = {
   clearBtn: document.querySelector(".clearBtn"),
   homeBtn: document.querySelector('.homeBtn'),
   fixCamBtn: document.querySelector('.fixCamBtn'),
-  waitBtn: document.querySelector('.waitBtn')
+  waitBtn: document.querySelector('.waitBtn'),
+  vidTime: document.getElementById('vidTime')
 };
 
 // Constants
@@ -52624,6 +52625,18 @@ viewer.addEventListener('urdf-processed', function () {
     state.sliders[joint.name] = li;
   });
 });
+window.vidTimeProxy = new Proxy({
+  value: vidTime
+}, {
+  set: function set(target, prop, newValue) {
+    if (prop === 'value') {
+      console.log("vidTime changed to: ".concat(newValue));
+      video.currentTime = newValue;
+    }
+    target[prop] = newValue;
+    return true;
+  }
+});
 
 // Animation functions
 var updateArmPosition = function updateArmPosition() {
@@ -52655,11 +52668,11 @@ var updateArmPosition = function updateArmPosition() {
     if (currentTime > window.jointsData[window.jointsData.length - 1].time) {
       highlightCard(elements.cardContainer.childNodes[window.jointsData.length - 1], false);
       if (state.loop) {
-        video.currentTime = window.jointsData[0].time;
-        state.startTime = Date.now() - video.currentTime * 1e3;
+        vidTimeProxy.value = window.jointsData[0].time;
+        state.startTime = Date.now() - vidTimeProxy.value * 1e3;
       } else {
         elements.animToggle.classList.toggle('checked');
-        video.pause();
+        if (!window.isWebcamActive) video.pause();
       }
     }
   }
@@ -52717,11 +52730,14 @@ document.addEventListener('WebComponentsReady', function () {
   elements.animToggle.addEventListener('click', function () {
     elements.animToggle.classList.toggle('checked');
     if (elements.animToggle.classList.contains('checked')) {
-      state.startTime = Date.now() - video.currentTime * 1e3;
-      video.play();
+      if (!window.isWebcamActive) {
+        video.play();
+        vidTimeProxy.value = video.currentTime;
+      }
+      state.startTime = Date.now() - vidTimeProxy.value * 1e3;
       window.linkRobot.classList.remove('checked');
     } else {
-      video.pause();
+      if (!window.isWebcamActive) video.pause();
     }
   });
   viewer.addEventListener('manipulate-start', function () {
@@ -52879,6 +52895,7 @@ var addFrameCard = function addFrameCard(index) {
   card.querySelector('input').addEventListener('blur', function (event) {
     var newTime = parseFloat(event.target.value);
     var currentIndex = Array.from(elements.cardContainer.children).indexOf(card);
+    vidTimeProxy.value = newTime;
     updateJointsData(currentIndex, {
       time: newTime
     });
@@ -52905,7 +52922,7 @@ var addFrameCard = function addFrameCard(index) {
     elements.cardContainer.insertBefore(card, elements.cardContainer.children[insertIndex]);
   }
   updateCardNumbers();
-  highlightCard(card);
+  highlightCard(card, false);
   updateMarkers();
   saveLocalData();
   return card;
@@ -52926,7 +52943,7 @@ var highlightCard = function highlightCard(card) {
   var updateVidTime = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
   var index = Array.from(card.parentNode.children).indexOf(card);
   var cardData = window.jointsData[index];
-  if (updateVidTime) video.currentTime = parseFloat(card.querySelector('input').value);
+  if (updateVidTime) vidTimeProxy.value = parseFloat(card.querySelector('input').value);
   Object.entries(cardData.angles).forEach(function (_ref5) {
     var _ref6 = _slicedToArray(_ref5, 2),
       joint = _ref6[0],
@@ -52946,7 +52963,7 @@ elements.copyBtn.addEventListener('click', function () {
     return ["J".concat(index + 1), formattedAngle.endsWith('.0') ? parseInt(angleInDegrees) : parseFloat(formattedAngle)];
   }));
   var newCardData = {
-    time: Math.round(video.currentTime * 100) / 100,
+    time: Math.round(vidTimeProxy.value * 100) / 100,
     group: window.groupNameSelected,
     angles: jointAngles
   };
@@ -53005,6 +53022,9 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 elements.clearBtn.addEventListener('click', function () {
+  clearALLCards();
+});
+window.clearALLCards = function () {
   elements.cardContainer.innerHTML = "";
   elements.animToggle.classList.remove('checked');
   elements.progressContainer.querySelectorAll('.progress-marker').forEach(function (mark) {
@@ -53014,7 +53034,7 @@ elements.clearBtn.addEventListener('click', function () {
   window.selectGroup(0);
   window.groups.splice(1, window.groups.length - 1);
   window.updateGroups();
-});
+};
 elements.homeBtn.addEventListener('click', function () {
   var joint = new Array(6).fill(0);
   for (var angle in joint) viewer.setJointValue("joint_".concat(parseInt(angle) + 1), joint[angle]);
@@ -53137,55 +53157,60 @@ elements.fixCamBtn.addEventListener('click', function () {
 var videoVolume = 1;
 
 // keyboard functions
-document.addEventListener('keyup', function (event) {
-  if (event.key === 'Delete') {
-    var card = elements.cardContainer.querySelector('.highlighted');
-    if (card) {
-      var index = Array.from(elements.cardContainer.children).indexOf(card);
-      if (index != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
-      window.jointsData.splice(index, 1);
-      elements.cardContainer.removeChild(card);
-      var marker = elements.progressContainer.querySelectorAll('.progress-marker');
-      elements.progressContainer.removeChild(marker[index]);
-      updateCardNumbers();
-    }
+function handleKeyPress(event) {
+  var editor = document.getElementById('editor');
+  if (!editor.onfocus) {
+    document.addEventListener('keyup', function (event) {
+      if (event.key === 'Delete') {
+        var card = elements.cardContainer.querySelector('.highlighted');
+        if (card) {
+          var index = Array.from(elements.cardContainer.children).indexOf(card);
+          if (index != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
+          window.jointsData.splice(index, 1);
+          elements.cardContainer.removeChild(card);
+          var marker = elements.progressContainer.querySelectorAll('.progress-marker');
+          elements.progressContainer.removeChild(marker[index]);
+          updateCardNumbers();
+        }
+      }
+      if (event.key === 'ArrowUp') {
+        var _card = elements.cardContainer.querySelector('.highlighted');
+        if (_card.previousElementSibling) highlightCard(_card.previousElementSibling);
+      } else if (event.key === 'ArrowDown') {
+        var _card2 = elements.cardContainer.querySelector('.highlighted');
+        if (_card2.nextElementSibling) highlightCard(_card2.nextElementSibling);
+      }
+      if (event.key === 'm') {
+        if (video.volume != 0) {
+          video.volume = 0;
+        } else {
+          video.volume = videoVolume;
+        }
+      }
+      if (event.key === '+') {
+        video.volume += 0.1;
+        videoVolume = video.volume;
+      } else if (event.key === '-') {
+        video.volume -= 0.1;
+        videoVolume = video.volume;
+      }
+      if (event.key === ' ') {
+        if (video.paused) video.play();else video.pause();
+      }
+      if (event.key === 'p') {
+        elements.animToggle.classList.toggle('checked');
+        if (elements.animToggle.classList.contains('checked')) {
+          state.startTime = Date.now() - vidTimeProxy.value * 1e3;
+          video.play();
+          window.linkRobot.classList.remove('checked');
+        } else {
+          video.pause();
+        }
+      }
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowLeft') vidTimeProxy.value -= 0.1;else if (event.key === 'ArrowRight') vidTimeProxy.value += 0.1;
+    });
   }
-  if (event.key === 'ArrowUp') {
-    var _card = elements.cardContainer.querySelector('.highlighted');
-    if (_card.previousElementSibling) highlightCard(_card.previousElementSibling);
-  } else if (event.key === 'ArrowDown') {
-    var _card2 = elements.cardContainer.querySelector('.highlighted');
-    if (_card2.nextElementSibling) highlightCard(_card2.nextElementSibling);
-  }
-  if (event.key === 'm') {
-    if (video.volume != 0) {
-      video.volume = 0;
-    } else {
-      video.volume = videoVolume;
-    }
-  }
-  if (event.key === '+') {
-    video.volume += 0.1;
-    videoVolume = video.volume;
-  } else if (event.key === '-') {
-    video.volume -= 0.1;
-    videoVolume = video.volume;
-  }
-  if (event.key === ' ') {
-    if (video.paused) video.play();else video.pause();
-  }
-  if (event.key === 'p') {
-    elements.animToggle.classList.toggle('checked');
-    if (elements.animToggle.classList.contains('checked')) {
-      state.startTime = Date.now() - video.currentTime * 1e3;
-      video.play();
-      window.linkRobot.classList.remove('checked');
-    } else {
-      video.pause();
-    }
-  }
-});
-document.addEventListener('keydown', function (event) {
-  if (event.key === 'ArrowLeft') video.currentTime -= 0.1;else if (event.key === 'ArrowRight') video.currentTime += 0.1;
-});
+}
 },{"three":"dKqR","./dragAndDrop.js":"oO0K","three/examples/jsm/loaders/STLLoader.js":"oy60","three/examples/jsm/loaders/GLTFLoader.js":"O6i0","three/examples/jsm/loaders/ColladaLoader.js":"KAXn","three/examples/jsm/loaders/OBJLoader.js":"LkK9","../../src/urdf-manipulator-element.js":"rMic","../../src/urdf-collisionViewer-element.js":"PVJv","sortablejs":"H54I"}]},{},["H99C"], null)

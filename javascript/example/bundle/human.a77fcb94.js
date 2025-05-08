@@ -535,6 +535,8 @@ function updateAngle() {
     _line.setAttribute('stroke-width', '6');
     svg.appendChild(_line);
   }
+  updateButton.classList.remove('saved');
+  updateButton.textContent = 'update';
 }
 function drawAngle(p1, p2, p3, angle, color, isExteriorAngle) {
   if (isExteriorAngle && !useExteriorAngle) return;
@@ -596,20 +598,37 @@ for (var i = 0; i < 6; i++) {
 }
 
 // Create update button
-var updateButton = document.createElement('button');
-updateButton.textContent = 'Update';
-updateButton.style.position = 'absolute';
-updateButton.style.right = '10px';
-updateButton.style.bottom = '10px';
+var updateButton = document.getElementById('buttonUpdate');
 updateButton.addEventListener('click', function (e) {
   e.stopPropagation();
   saveAngle();
   saveMappingData();
   updateButton.textContent = 'saved';
+  updateButton.classList.add('saved');
   groups[selectedGroup].data["J".concat(selectedButton + 1)].is3D = is3D;
   window.saveLocalData();
 });
-figure.appendChild(updateButton);
+var MirrorButton = document.getElementById('buttonMirror');
+var symmetricPairs = [[6, 1], [5, 2], [4, 3], [8, 7],
+// 頭部
+[12, 11],
+// 肩膀
+[14, 13],
+// 上臂
+[16, 15], [18, 17], [20, 19], [22, 21],
+// 手指
+[24, 23],
+// 腰部
+[26, 25],
+// 大腿
+[28, 27],
+// 小腿
+[32, 31], [30, 29] // 腳
+];
+MirrorButton.addEventListener('click', function (e) {
+  e.stopPropagation();
+  MirrorButton.classList.toggle('active');
+});
 function loadAngleFromButtonContent(content) {
   // Parse the content and load the angle
   var pointIds = content.split(',').map(function (id) {
@@ -1198,4 +1217,50 @@ button3D.addEventListener('click', function (e) {
 
 // Set initial state to 3D
 // buttonSlider.style.transform = 'translateY(40px)';
+
+window.lockJoints = document.querySelectorAll('.lock-joint');
+lockJoints.forEach(function (joint) {
+  joint.addEventListener('click', function (e) {
+    if (joint.dataset.preventClick) {
+      delete joint.dataset.preventClick;
+      return;
+    }
+    e.stopPropagation();
+    joint.classList.toggle('locked');
+  });
+  joint.addEventListener('dblclick', function (e) {
+    e.stopPropagation();
+    lockJoints.forEach(function (joint) {
+      joint.classList.add('locked');
+    });
+    joint.classList.remove('locked');
+  });
+  var pressTimer;
+  joint.addEventListener('mousedown', function (e) {
+    e.preventDefault(); // Prevent the mouseup event from being interpreted as a click
+    e.stopPropagation();
+    pressTimer = setTimeout(function () {
+      lockJoints.forEach(function (joint) {
+        joint.classList.remove('locked');
+      });
+      joint.classList.add('locked');
+      joint.dataset.preventClick = true; // Prevent click after long press
+    }, 500); // 1 second long press
+  });
+  joint.addEventListener('mouseup', function (e) {
+    e.preventDefault(); // Prevent the mouseup event from being interpreted as a click
+    e.stopPropagation();
+    clearTimeout(pressTimer);
+  });
+  joint.addEventListener('mouseleave', function (e) {
+    e.stopPropagation();
+    clearTimeout(pressTimer);
+  });
+  joint.addEventListener('contextmenu', function (e) {
+    e.preventDefault();
+    lockJoints.forEach(function (joint) {
+      joint.classList.remove('locked');
+    });
+  });
+});
 },{}]},{},["EwPg"], null)
