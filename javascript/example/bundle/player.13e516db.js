@@ -290,17 +290,23 @@ function resizeCanvas() {
   var containerWidth = containerRect.width;
   var containerHeight = containerRect.height;
   var canvasWidth, canvasHeight;
+
+  // video height reach containerHeight limit
   if (containerWidth / containerHeight > videoAspectRatio) {
     canvasHeight = containerHeight;
     canvasWidth = canvasHeight * videoAspectRatio;
-  } else {
+  }
+  // video width reach containerWidth limit
+  else {
     canvasWidth = containerWidth;
     canvasHeight = canvasWidth / videoAspectRatio;
   }
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
-  canvas.style.position = 'absolute';
+
+  // canvas.style.position = 'absolute';
   canvas.style.top = "".concat((containerHeight - canvasHeight) / 2, "px");
+  canvas.style.left = "".concat((containerWidth - canvasWidth) / 2, "px");
   if (lastPoses.length > 0) {
     drawPoses(lastPoses);
   }
@@ -650,7 +656,7 @@ function displayAngles(context, angles) {
   context.fillStyle = 'white';
   context.strokeStyle = 'black';
   context.lineWidth = 3;
-  var y = 30;
+  var y = 0.07 * canvas.height;
   var text = "Group: ".concat(window.groupNameSelected);
   context.strokeText(text, 10, y);
   context.fillText(text, 10, y);
@@ -666,7 +672,7 @@ function displayAngles(context, angles) {
   }
 
   // Right side display
-  y = 30;
+  y = 0.07 * canvas.height;
   var groupText = "Projections";
   var groupTextWidth = context.measureText(groupText).width;
   context.strokeText(groupText, canvas.width - groupTextWidth - 10, y);
@@ -1189,32 +1195,35 @@ var autoCaptureButton = document.getElementById('scatter-data');
 // Create interval settings that appear on hover
 var intervalSettings = document.createElement('div');
 intervalSettings.className = 'interval-settings';
-intervalSettings.innerHTML = "\n  <label for=\"capture-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"capture-interval\" min=\"0.01\" max=\"10\" step=\"0.1\" value=\"1\">\n";
+intervalSettings.innerHTML = "\n  <label for=\"capture-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"capture-interval\" min=\"0.01\" max=\"10\" value=\"1\">\n";
 intervalSettings.style.display = 'none';
 document.querySelector('.controls').appendChild(intervalSettings);
 
 // Add CSS for components
 var style = document.createElement('style');
-style.textContent = "\n.interval-settings {\n  position: absolute;\n  background: rgba(0, 0, 0, 0.8);\n  padding: 10px;\n  border-radius: 5px;\n  bottom: 60px;\n  right: 60%;\n  color: white;\n  opacity: 0;\n  transition: opacity 0.3s ease;\n  pointer-events: none;\n}\n\n.interval-settings.visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.interval-settings input {\n  width: 60px;\n  margin-left: 5px;\n  padding: 2px 5px;\n}\n\n.progress-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.7);\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  z-index: 9999;\n}\n\n.progress-message {\n  background-color: white;\n  padding: 20px;\n  border-radius: 8px;\n  font-size: 18px;\n  text-align: center;\n  margin-bottom: 15px;\n}\n\n.cancel-button {\n  background-color: #ff4444;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 5px;\n  cursor: pointer;\n  font-size: 16px;\n}\n\n.cancel-button:hover {\n  background-color: #cc0000;\n}\n";
+style.textContent = "\n.interval-settings {\n  position: absolute;\n  background: rgba(0, 0, 0, 0.8);\n  padding: 10px;\n  border-radius: 5px;\n  bottom: 60px;\n  left: 50%;\n  transform: translateX(-50%);\n  color: white;\n  opacity: 0;\n  transition: opacity 0.3s ease;\n  pointer-events: none;\n}\n\n.interval-settings.visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.interval-settings input {\n  -webkit-appearance: none;\n  width: 30px;\n  margin-left: 5px;\n  padding: 2px 5px;\n}\n\n#capture-interval::-webkit-outer-spin-button,\n#capture-interval::-webkit-inner-spin-button {\n  -webkit-appearance: none; /* \u96B1\u85CF WebKit \u700F\u89BD\u5668\u4E2D\u7684\u4E0A\u4E0B\u6309\u9215 */\n  -moz-appearance: textfield; /* \u96B1\u85CF Firefox \u4E2D\u7684\u4E0A\u4E0B\u6309\u9215 */\n  appearance: none; /* \u6A19\u6E96\u5C6C\u6027\uFF0C\u9069\u7528\u65BC\u652F\u6301\u7684\u700F\u89BD\u5668 */\n}\n\n.progress-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.7);\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  z-index: 9999;\n}\n\n.progress-message {\n  background-color: white;\n  padding: 20px;\n  border-radius: 8px;\n  font-size: 18px;\n  text-align: center;\n  margin-bottom: 15px;\n}\n\n.cancel-button {\n  background-color: #ff4444;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 5px;\n  cursor: pointer;\n  font-size: 16px;\n}\n\n.cancel-button:hover {\n  background-color: #cc0000;\n}\n";
 document.head.appendChild(style);
 
 // Setup hover behavior with timers
-var hideTimeout;
+var hideTimeout, showTimeout;
 
 // Show settings on hover
 autoCaptureButton.addEventListener('mouseenter', function () {
+  showTimeout = setTimeout(function () {
+    intervalSettings.classList.add('visible');
+  }, 200); // 0.2s delay
   clearTimeout(hideTimeout);
-  intervalSettings.classList.add('visible');
 });
 
 // Setup hover detection for both elements
 autoCaptureButton.addEventListener('mouseleave', function () {
   clearTimeout(hideTimeout);
+  clearTimeout(showTimeout);
   hideTimeout = setTimeout(function () {
     if (!isHovering(intervalSettings)) {
       intervalSettings.classList.remove('visible');
     }
-  }, 500); // 0.5秒延遲
+  }, 500); // 0.5s delay
 });
 intervalSettings.addEventListener('mouseenter', function () {
   clearTimeout(hideTimeout);

@@ -52,7 +52,7 @@ body {
 video {
   position: absolute;
   width: 100%;
-  height: calc(100% - 60px); /* Adjust height to make room for controls */
+  height: 100%; /* Adjust height to make room for controls */
   background-color: #000;
   outline: none;
   display: none;
@@ -69,7 +69,7 @@ video {
 
 #canvas {
   position: absolute;
-  width: 100%;
+  /* width: 100%; */
   top: 0;
   left: 0;
   z-index: 1;
@@ -264,6 +264,7 @@ video {
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
   display: none; /* Initially hidden */
+  z-index: 2;
 }
 .close-button:hover {
   background-color: gray;
@@ -340,6 +341,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
+  z-index: 2;
   display: none;
 }
 .pose-button:hover {
@@ -425,6 +427,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
+  z-index: 2;
   /* display: none; */
 }
 .cam-button:hover {

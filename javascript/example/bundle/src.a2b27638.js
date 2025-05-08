@@ -52640,7 +52640,8 @@ window.vidTimeProxy = new Proxy({
 
 // Animation functions
 var updateArmPosition = function updateArmPosition() {
-  var currentTime = (Date.now() - state.startTime) / 1e3;
+  var currentTime;
+  if (!isWebcamActive) currentTime = (Date.now() - state.startTime) / 1e3;else currentTime = video.currentTime;
   console.log(currentTime);
   for (var i = 0; i < window.jointsData.length - 1; i++) {
     if (currentTime >= window.jointsData[i].time && currentTime < window.jointsData[i + 1].time) {
