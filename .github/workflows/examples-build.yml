@@ -6,6 +6,9 @@ name: Build Examples
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'javascript/**'
+      - '.github/workflows/**'
 
 defaults:
   run:
