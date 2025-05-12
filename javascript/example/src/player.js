@@ -220,6 +220,9 @@ function angleMapping(angles, groupData) {
 
   for (let i = 1; i <= 6; i++) {
     const joint = `J${i}`;
+    const robot_joint = `joint_${i}`;
+    const limit_lower = viewer.robot.joints[robot_joint].limit.lower * 180 / Math.PI;
+    const limit_upper = viewer.robot.joints[robot_joint].limit.upper * 180 / Math.PI;
     const angle = angles[joint];
     // console.log(groupData[joint])
     const mappingData = groupData[joint].mappingData;
@@ -233,12 +236,19 @@ function angleMapping(angles, groupData) {
 
       if (angleOut[joint] === undefined || isNaN(angleOut[joint]))
         angleOut[joint] = 0;
+
+      if (angleOut[joint] < limit_lower)
+        angleOut[joint] = limit_lower;
+      if (angleOut[joint] > limit_upper) 
+        angleOut[joint] = limit_upper;
+
     } else {
       // If angle is undefined or NaN, use a default value or skip
       angleOut[joint] = 0; // or any other default value
     }
     angleOut[joint] = Math.round(angleOut[joint] * 10) / 10;
   }
+
   // console.log(angleOut);
   return angleOut;
 }

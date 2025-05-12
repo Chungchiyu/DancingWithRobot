@@ -226,3 +226,53 @@
 .storage-toggle input[type="checkbox"]:checked::before {
     transform: translateX(24px);
 }
+
+#fileInput {
+    content: 'Import';
+}
+
+#filenameInputContainer {
+    width: 100%;
+    left: 0;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+#filenameInputContainer.hidden {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+#filenameInputContainer.visible {
+    transform: translateY(-30px);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#filenameInput {
+    position: absolute;
+    width: 200px;
+    left: calc(48% - 100px);
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.custom-file-label {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 14px;
+    background-color: #d2e8ff;
+    color: black;
+    border-radius: 2px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.custom-file-label:hover {
+    background-color: #9fceff;
+}

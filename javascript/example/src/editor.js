@@ -34,7 +34,8 @@ downloadBtn.addEventListener('click', () => {
     const blob = new Blob([text], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'code.txt';
+    const filename = `${exportBtn.dataset.filename}_code.hrb` || 'code.hrb';
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -211,27 +212,57 @@ function setupJointsDataProxy() {
 
 window.addEventListener('load', setupJointsDataProxy);
 
+const exportBtn = document.getElementById('jsonEXBtn');
+const filenameInputContainer = document.getElementById('filenameInputContainer');
+const filenameInput = document.getElementById('filenameInput');
+
+let hideTimeout;
+
+exportBtn.addEventListener('mouseenter', () => {
+    clearTimeout(hideTimeout); // 清除任何正在等待的淡出計時器
+    filenameInputContainer.classList.add('visible');
+    filenameInput.focus();
+});
+
+exportBtn.addEventListener('mouseleave', () => {
+    hideTimeout = setTimeout(() => {
+        filenameInputContainer.classList.remove('visible');
+        filenameInput.blur();
+    }, 500); // 等待 0.5 秒後淡出
+});
+
+filenameInputContainer.addEventListener('mouseenter', () => {
+    clearTimeout(hideTimeout); // 滑鼠進入時取消淡出計時器
+});
+
+filenameInputContainer.addEventListener('mouseleave', () => {
+    hideTimeout = setTimeout(() => {
+        filenameInputContainer.classList.remove('visible');
+    }, 500); // 滑鼠離開時重新啟動淡出計時器
+});
+
+filenameInput.addEventListener('input', () => {
+    const customFilename = filenameInput.value.trim();
+    if (customFilename) {
+        exportBtn.dataset.filename = customFilename;
+    } else {
+        exportBtn.dataset.filename = 'joints_data';
+    }
+});
+
 function exportAndDownload() {
     const jsonData = { groups, jointsData };
-    console.log(jointsData);
     const jsonString = JSON.stringify(jsonData, null, 2);
 
-    // Download JSON
-    downloadFile(jsonString, 'generated_data.json', 'application/json');
+    const filename = exportBtn.dataset.filename || 'joints_data';
+    downloadFile(jsonString, `${filename}.json`, 'application/json');
 
-    // Download Excel
     const workbook = XLSX.utils.book_new();
-    
-    // Process groups data
-    // const groupsSheet = XLSX.utils.json_to_sheet(processGroupsData(groups));
-    // XLSX.utils.book_append_sheet(workbook, groupsSheet, "Groups");
-    
-    // Process jointsData
     const jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
     XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
-    
+
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    downloadFile(excelBuffer, 'generated_data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    downloadFile(excelBuffer, `${filename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
 
 function processGroupsData(groups) {
@@ -308,6 +339,8 @@ function handleFileSelect(event) {
                     window.addFrameCard(i);
                 }
                 // You can perform further operations with jsonData here
+                output.textContent = file.name;
+                filenameInput.value = file.name.replace('.json', '');
                 console.log('Successfully imported JSON data:', jsonData);
             } catch (error) {
                 // Handle JSON parsing errors

@@ -188,8 +188,12 @@
                         <label for="enable-storage">Local Save</label>
                         <input type="checkbox" id="enable-storage">
                     </div>
+                    <div id="filenameInputContainer" class="hidden">
+                        <input type="text" id="filenameInput" placeholder="Enter filename" />
+                    </div>
                     <button id="jsonEXBtn">Export</button>
-                    <input type="file" id="fileInput" accept=".json">
+                    <label for="fileInput" class="custom-file-label">Import</label>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
                     <div id="output"></div>
                     <div id="toggle-controls"></div>
                     <div id="is-loop" class="toggle">Loop Animation</div>
