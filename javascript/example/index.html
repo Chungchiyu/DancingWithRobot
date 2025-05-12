@@ -79,7 +79,7 @@
                         <button id="restart" class="active">Restart</button>
                     </div>
                 </div>
-                <div class="loading">
+                <div id="vid-loading" class="loading hidden">
                     <div class="spinner"></div>
                     Loading...
                 </div>
@@ -174,6 +174,10 @@
             <div class="handle"></div>
         </div>
         <div class="side" id="right-side">
+            <div id="sim-loading" class="loading hidden">
+                <div class="spinner"></div>
+                Loading...
+            </div>
             <urdf-viewer up="+Z" display-shadow tabindex="1"></urdf-viewer>
             <div id="menu">
                 <ul id="urdf-options" class="hidden">
@@ -216,6 +220,8 @@
                         <div class="button">
                             <button class="copyBtn btn">Copy</button>
                             <button class="refreshBtn btn">Refresh</button>
+                            <button class="refreshAllBtn btn">Refresh All</button>
+                            <br><br>
                             <button class="clearBtn btn">Clear</button>
                             <button class="homeBtn btn">Home</button>
                             <!-- <button class="waitBtn btn">Wait</button> -->

@@ -3,7 +3,7 @@ const canvas = document.getElementById('canvas');
 window.progressContainer = document.getElementById('progress-container');
 const progressFilled = document.getElementById('progress-filled');
 const progressThumb = document.getElementById('progress-thumb');
-const loading = document.querySelector('.loading');
+const loading = document.getElementById('vid-loading');
 const fileInput = document.getElementById('file-input');
 const selectVideoButton = document.getElementById('select-video');
 // const playPauseButton = document.getElementById('play-pause');
@@ -453,7 +453,7 @@ async function loadVideo(event) {
   if (file) {
     video.src = URL.createObjectURL(file);
     isVideoLoaded = true;
-    loading.style.display = 'block';
+    loading.classList.remove('hidden');
     canvas.style.display = 'none';
     selectVideoButton.style.display = 'none';
     await video.play();
@@ -708,7 +708,7 @@ async function generateThumbnails() {
     thumbnailDiv.style.backgroundImage = `url(${thumbnailCanvas.toDataURL()})`;
   }
 
-  loading.style.display = 'none';
+  loading.classList.add('hidden');
   const thumbnails = document.querySelectorAll('.progress-thumbnail');
   thumbnails.forEach(thumbnail => thumbnail.style.display = 'block');
 

@@ -32,11 +32,13 @@ const elements = {
     progressContainer: document.getElementById('progress-container'),
     copyBtn: document.querySelector(".copyBtn"),
     refreshBtn: document.querySelector('.refreshBtn'),
+    refreshAllBtn: document.querySelector('.refreshAllBtn'),
     clearBtn: document.querySelector(".clearBtn"),
     homeBtn: document.querySelector('.homeBtn'),
     fixCamBtn: document.querySelector('.fixCamBtn'),
     waitBtn: document.querySelector('.waitBtn'),
-    vidTime: document.getElementById('vidTime')
+    vidTime: document.getElementById('vidTime'),
+    simLoading: document.getElementById('sim-loading'),
 };
 
 // Constants
@@ -600,6 +602,10 @@ elements.copyBtn.addEventListener('click', () => {
 });
 
 elements.refreshBtn.addEventListener('click', () => {
+    refreshCard();
+});
+
+function refreshCard() {
     updateCardNumbers();
     const card = elements.cardContainer.querySelector('.highlighted');
     const index = Array.from(card.parentNode.children).indexOf(card);
@@ -618,6 +624,21 @@ elements.refreshBtn.addEventListener('click', () => {
     const group = card.querySelector('#group-card').textContent;
     updateCardContent(card, { time: time, angles: jointAngles, group: group }, index);
     window.jointsData[index].angles = jointAngles;
+}
+
+elements.refreshAllBtn.addEventListener('click', () => {
+    // console.log(elements.cardContainer.childNodes);
+    elements.simLoading.classList.remove('hidden');
+    setTimeout(() => {
+        elements.cardContainer.childNodes.forEach((card, index) => {
+            highlightCard(card);
+            refreshCard();
+        });
+        setTimeout(() => {
+            elements.simLoading.classList.add('hidden');
+        }, 10);
+    }
+    , 0);
 });
 
 // Initialize Sortable with swap option

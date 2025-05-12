@@ -4,6 +4,7 @@ const showEditorBtn = document.getElementById('showEditor');
 const editorContainer = document.getElementById('editorContainer');
 const editorHeader = document.getElementById('editorHeader');
 const downloadBtn = document.getElementById('code-download');
+const simLoading = document.getElementById('sim-loading');
 
 function updateLineNumbers() {
     const lines = editor.value.split('\n');
@@ -187,7 +188,10 @@ function updateEditorWithJointsData(jointsData) {
             return comment + point + run + `\n`
         }).join('\n');
 
-        editor.value = formattedData;
+        const file_head = `;Version:310\n;[Point&S]\n;[Point&E]\n;[Program&SV2]\n`;
+        const file_end = `;[Program&E]\n`;
+
+        editor.value = file_head + formattedData + file_end;
         updateLineNumbers();
         
         if (editorContainer.classList.contains('expanded')) {
@@ -257,12 +261,13 @@ function exportAndDownload() {
     const filename = exportBtn.dataset.filename || 'joints_data';
     downloadFile(jsonString, `${filename}.json`, 'application/json');
 
-    const workbook = XLSX.utils.book_new();
-    const jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
-    XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
+    // Export xlsx file
+    // const workbook = XLSX.utils.book_new();
+    // const jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
+    // XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
 
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    downloadFile(excelBuffer, `${filename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    // const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    // downloadFile(excelBuffer, `${filename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
 
 function processGroupsData(groups) {
@@ -315,7 +320,15 @@ const output = document.getElementById('output');
 const clearBtn = document.querySelector(".clearBtn");
 
 // Add event listener for file selection
-fileInput.addEventListener('change', handleFileSelect);
+fileInput.addEventListener('change', (e) => {
+    simLoading.classList.remove('hidden'); // 立即移除 hidden 類
+
+    // 使用 requestAnimationFrame 確保渲染完成後再執行後續操作
+    requestAnimationFrame(() => {
+        handleFileSelect(e);
+    });
+});
+
 clearBtn.addEventListener('click', () => { fileInput.value = ''; });
 
 function handleFileSelect(event) {
@@ -346,6 +359,10 @@ function handleFileSelect(event) {
                 // Handle JSON parsing errors
                 output.textContent = 'Error parsing JSON: ' + error.message;
                 console.error('Error parsing JSON:', error);
+            } finally {
+                setTimeout(() => {
+                    simLoading.classList.add('hidden');
+                }, 10);
             }
         };
         
