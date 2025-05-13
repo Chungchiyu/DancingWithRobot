@@ -52,7 +52,7 @@ body {
 video {
   position: absolute;
   width: 100%;
-  height: calc(100% - 60px); /* Adjust height to make room for controls */
+  height: 100%; /* Adjust height to make room for controls */
   background-color: #000;
   outline: none;
   display: none;
@@ -69,7 +69,7 @@ video {
 
 #canvas {
   position: absolute;
-  width: 100%;
+  /* width: 100%; */
   top: 0;
   left: 0;
   z-index: 1;
@@ -201,13 +201,29 @@ video {
 }
 
 .loading {
-  display: none;
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  color: #ffffff;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.6); /* 半透明背景 */
+  z-index: 4; /* 確保在其他內容之上 */
+  backdrop-filter: blur(10px); /* 毛玻璃效果 */
+  -webkit-backdrop-filter: blur(10px); /* 支援 Safari */
+  font-size: 2rem;
+  font-weight: bold;
+  color: #ffffff; /* 文字顏色 */
+  pointer-events: none; /* 防止干擾點擊 */
+  opacity: 1; /* 初始透明度 */
+  transition: opacity 0.5s ease-in-out; /* 添加淡入淡出效果 */
+}
+
+.loading.hidden {
+  opacity: 0; /* 淡出效果 */
+  pointer-events: none; /* 確保隱藏時無法點擊 */
 }
 
 .loading .spinner {
@@ -229,7 +245,7 @@ video {
   background-color: #ccc;
   cursor: ew-resize;
   position: relative;
-  z-index: 10;
+  z-index: 3;
 }
 
 .divider:hover {
@@ -264,6 +280,7 @@ video {
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
   display: none; /* Initially hidden */
+  z-index: 2;
 }
 .close-button:hover {
   background-color: gray;
@@ -340,6 +357,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
+  z-index: 2;
   display: none;
 }
 .pose-button:hover {
@@ -425,6 +443,7 @@ video {
   cursor: pointer;
   font-size: 18px; /* Centered X */
   font-weight: bold; /* Bold X */
+  z-index: 2;
   /* display: none; */
 }
 .cam-button:hover {

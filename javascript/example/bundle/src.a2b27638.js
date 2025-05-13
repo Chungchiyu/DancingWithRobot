@@ -52481,11 +52481,14 @@ var elements = {
   progressContainer: document.getElementById('progress-container'),
   copyBtn: document.querySelector(".copyBtn"),
   refreshBtn: document.querySelector('.refreshBtn'),
+  refreshAllBtn: document.querySelector('.refreshAllBtn'),
   clearBtn: document.querySelector(".clearBtn"),
   homeBtn: document.querySelector('.homeBtn'),
   fixCamBtn: document.querySelector('.fixCamBtn'),
   waitBtn: document.querySelector('.waitBtn'),
-  vidTime: document.getElementById('vidTime')
+  vidTime: document.getElementById('vidTime'),
+  simLoading: document.getElementById('sim-loading'),
+  poseDetectToggle: document.getElementById('poseDetect')
 };
 
 // Constants
@@ -52518,6 +52521,9 @@ elements.isLoop.addEventListener('click', function () {
 });
 elements.controlsToggle.addEventListener('click', function () {
   return elements.controlsel.classList.toggle('hidden');
+});
+document.getElementById("help-icon").addEventListener("click", function () {
+  window.open("https://hackmd.io/@NickChung/TwinPose_Manual", "_blank");
 });
 viewer.addEventListener('urdf-change', function () {
   Object.values(state.sliders).forEach(function (sl) {
@@ -52640,7 +52646,8 @@ window.vidTimeProxy = new Proxy({
 
 // Animation functions
 var updateArmPosition = function updateArmPosition() {
-  var currentTime = (Date.now() - state.startTime) / 1e3;
+  var currentTime;
+  if (!isWebcamActive) currentTime = (Date.now() - state.startTime) / 1e3;else currentTime = video.currentTime;
   console.log(currentTime);
   for (var i = 0; i < window.jointsData.length - 1; i++) {
     if (currentTime >= window.jointsData[i].time && currentTime < window.jointsData[i + 1].time) {
@@ -52955,6 +52962,17 @@ var highlightCard = function highlightCard(card) {
     return child.classList.remove('highlighted');
   });
   card.classList.add('highlighted');
+
+  // Check if the card is visible in the viewport
+  var cardRect = card.getBoundingClientRect();
+  var containerRect = elements.cardContainer.getBoundingClientRect();
+  if (cardRect.top < containerRect.top || cardRect.bottom > containerRect.bottom) {
+    // Scroll the container to bring the card into view
+    card.scrollIntoView({
+      behavior: 'auto',
+      block: 'nearest'
+    });
+  }
 };
 elements.copyBtn.addEventListener('click', function () {
   var jointAngles = Object.fromEntries(Object.keys(viewer.robot.joints).slice(0, 6).map(function (key, index) {
@@ -52983,6 +53001,9 @@ elements.copyBtn.addEventListener('click', function () {
   addFrameCard(i);
 });
 elements.refreshBtn.addEventListener('click', function () {
+  refreshCard();
+});
+function refreshCard() {
   updateCardNumbers();
   var card = elements.cardContainer.querySelector('.highlighted');
   var index = Array.from(card.parentNode.children).indexOf(card);
@@ -52999,6 +53020,19 @@ elements.refreshBtn.addEventListener('click', function () {
     group: group
   }, index);
   window.jointsData[index].angles = jointAngles;
+}
+elements.refreshAllBtn.addEventListener('click', function () {
+  // console.log(elements.cardContainer.childNodes);
+  elements.simLoading.classList.remove('hidden');
+  setTimeout(function () {
+    elements.cardContainer.childNodes.forEach(function (card, index) {
+      highlightCard(card);
+      refreshCard();
+    });
+    setTimeout(function () {
+      elements.simLoading.classList.add('hidden');
+    }, 10);
+  }, 0);
 });
 
 // Initialize Sortable with swap option
@@ -53147,70 +53181,213 @@ document.addEventListener('DOMContentLoaded', function () {
 elements.fixCamBtn.addEventListener('click', function () {
   elements.fixCamBtn.classList.toggle('active');
   if (elements.fixCamBtn.classList.contains('active')) {
-    elements.fixCamBtn.style.color = 'red';
     viewer.getControls.enableRotate = false;
   } else {
-    elements.fixCamBtn.style.color = 'black';
     viewer.getControls.enableRotate = true;
   }
 });
 var videoVolume = 1;
 
 // keyboard functions
-function handleKeyPress(event) {
+var keyPressStartTime = null; // Record the time when the key is pressed
+var LONG_PRESS_THRESHOLD = 500; // Threshold for long press (milliseconds)
+
+document.addEventListener('keydown', function (event) {
   var editor = document.getElementById('editor');
   if (!editor.onfocus) {
-    document.addEventListener('keyup', function (event) {
-      if (event.key === 'Delete') {
-        var card = elements.cardContainer.querySelector('.highlighted');
-        if (card) {
-          var index = Array.from(elements.cardContainer.children).indexOf(card);
-          if (index != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
-          window.jointsData.splice(index, 1);
-          elements.cardContainer.removeChild(card);
-          var marker = elements.progressContainer.querySelectorAll('.progress-marker');
-          elements.progressContainer.removeChild(marker[index]);
-          updateCardNumbers();
-        }
-      }
-      if (event.key === 'ArrowUp') {
-        var _card = elements.cardContainer.querySelector('.highlighted');
-        if (_card.previousElementSibling) highlightCard(_card.previousElementSibling);
-      } else if (event.key === 'ArrowDown') {
-        var _card2 = elements.cardContainer.querySelector('.highlighted');
-        if (_card2.nextElementSibling) highlightCard(_card2.nextElementSibling);
-      }
-      if (event.key === 'm') {
-        if (video.volume != 0) {
-          video.volume = 0;
-        } else {
-          video.volume = videoVolume;
-        }
-      }
-      if (event.key === '+') {
-        video.volume += 0.1;
-        videoVolume = video.volume;
-      } else if (event.key === '-') {
-        video.volume -= 0.1;
-        videoVolume = video.volume;
-      }
-      if (event.key === ' ') {
-        if (video.paused) video.play();else video.pause();
-      }
-      if (event.key === 'p') {
-        elements.animToggle.classList.toggle('checked');
-        if (elements.animToggle.classList.contains('checked')) {
-          state.startTime = Date.now() - vidTimeProxy.value * 1e3;
-          video.play();
-          window.linkRobot.classList.remove('checked');
-        } else {
-          video.pause();
-        }
-      }
-    });
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'ArrowLeft') vidTimeProxy.value -= 0.1;else if (event.key === 'ArrowRight') vidTimeProxy.value += 0.1;
-    });
+    if (!keyPressStartTime) {
+      keyPressStartTime = Date.now(); // Record the time when the key is pressed
+    }
+
+    // Handle operations during long press if needed
+    if (event.repeat) {
+      handleLongPress(event.key); // Operations to repeat during long press
+    }
   }
+});
+document.addEventListener('keyup', function (event) {
+  var editor = document.getElementById('editor');
+  if (!editor.onfocus) {
+    var pressDuration = Date.now() - keyPressStartTime; // Calculate the duration of the press
+    keyPressStartTime = null; // Reset the press time
+
+    if (pressDuration >= LONG_PRESS_THRESHOLD) {
+      handleLongPressRelease(event.key); // Operations after releasing a long press
+    } else {
+      handleShortPress(event.key); // Operations for a short press
+    }
+  }
+});
+
+// Short press operations
+function handleShortPress(key) {
+  switch (key) {
+    case 'Delete':
+      handleDeleteCard();
+      break;
+    case 'ArrowUp':
+      handleGoToLastCard();
+      break;
+    case 'ArrowDown':
+      handleGoToNextCard();
+      break;
+    case 'm':
+      handleMute();
+      break;
+    case '+':
+      handleVolumeUp();
+      break;
+    case '-':
+      handleVolumeDown();
+      break;
+    case ' ':
+      handlePlayPause();
+      break;
+    case 'ArrowLeft':
+      handleSeekBackward();
+      break;
+    case 'ArrowRight':
+      handleSeekForward();
+      break;
+    case 'p':
+      handleToggleAnimation();
+      break;
+    case 'Tab':
+      handleAddCard();
+      break;
+  }
+}
+
+// Long press operations (executed continuously)
+function handleLongPress(key) {
+  switch (key) {
+    case 'Delete':
+      handleDeleteCard();
+      break;
+    case 'ArrowUp':
+      handleGoToLastCard();
+      break;
+    case 'ArrowDown':
+      handleGoToNextCard();
+      break;
+    case '+':
+      handleVolumeUp();
+      break;
+    case '-':
+      handleVolumeDown();
+      break;
+    case 'ArrowLeft':
+      handleSeekBackward();
+      break;
+    case 'ArrowRight':
+      handleSeekForward();
+      break;
+    case 'Tab':
+      handleAddCard();
+      break;
+  }
+}
+
+// Operations after releasing a long press
+function handleLongPressRelease(key) {
+  // switch (key) {
+  //     case 'ArrowUp':
+  //         console.log('Released after long press: stop moving up');
+  //         break;
+  //     case 'ArrowDown':
+  //         console.log('Released after long press: stop moving down');
+  //         break;
+  //     default:
+  //         console.log(`Released after long press: released ${key}`);
+  // }
+}
+
+// keyfunction action
+function handleDeleteCard() {
+  var card = elements.cardContainer.querySelector('.highlighted');
+  if (card) {
+    var index = Array.from(elements.cardContainer.children).indexOf(card);
+    if (index != 0) highlightCard(card.previousElementSibling);else if (elements.cardContainer.childNodes.length > 1) highlightCard(card.nextElementSibling);
+    window.jointsData.splice(index, 1);
+    elements.cardContainer.removeChild(card);
+    var marker = elements.progressContainer.querySelectorAll('.progress-marker');
+    elements.progressContainer.removeChild(marker[index]);
+    updateCardNumbers();
+  }
+}
+function handleGoToLastCard() {
+  var card = elements.cardContainer.querySelector('.highlighted');
+  if (card.previousElementSibling) highlightCard(card.previousElementSibling);
+}
+function handleGoToNextCard() {
+  var card = elements.cardContainer.querySelector('.highlighted');
+  if (card.nextElementSibling) highlightCard(card.nextElementSibling);
+}
+function handleMute() {
+  if (video.volume != 0) {
+    video.volume = 0;
+  } else {
+    video.volume = videoVolume;
+  }
+
+  // Display volume overlay
+  showVolumeOverlay("Volume: ".concat((video.volume * 100).toFixed(0), "%"));
+}
+function handleVolumeUp() {
+  if (video.volume >= 0.9) {
+    video.volume = 1;
+  } else {
+    video.volume += 0.1;
+  }
+  videoVolume = video.volume;
+
+  // Display volume overlay
+  showVolumeOverlay("Volume: ".concat((video.volume * 100).toFixed(0), "%"));
+}
+function handleVolumeDown() {
+  if (video.volume <= 0.1) {
+    video.volume = 0;
+  } else {
+    video.volume -= 0.1;
+  }
+  videoVolume = video.volume;
+
+  // Display volume overlay
+  showVolumeOverlay("Volume: ".concat((video.volume * 100).toFixed(0), "%"));
+}
+function showVolumeOverlay(text) {
+  var volumeOverlay = document.getElementById('volumeOverlay');
+  volumeOverlay.textContent = text;
+  volumeOverlay.classList.remove('hidden');
+
+  // Set a new timeout
+  setTimeout(function () {
+    volumeOverlay.classList.add('hidden');
+  }, 500); // Hide after 1 second
+}
+function handlePlayPause() {
+  if (video.paused) video.play();else video.pause();
+}
+function handleToggleAnimation() {
+  elements.animToggle.classList.toggle('checked');
+  if (elements.animToggle.classList.contains('checked')) {
+    state.startTime = Date.now() - vidTimeProxy.value * 1e3;
+    video.play();
+    window.linkRobot.classList.remove('checked');
+  } else {
+    video.pause();
+  }
+}
+function handleSeekBackward() {
+  var interval = parseFloat(document.getElementById('capture-interval').value);
+  vidTimeProxy.value -= interval;
+}
+function handleSeekForward() {
+  var interval = parseFloat(document.getElementById('capture-interval').value);
+  vidTimeProxy.value += interval;
+}
+function handleAddCard() {
+  if (elements.poseDetectToggle.classList.contains('checked')) window.captureData(window.lastPoseAnglesGlobal);
+  handleSeekForward();
 }
 },{"three":"dKqR","./dragAndDrop.js":"oO0K","three/examples/jsm/loaders/STLLoader.js":"oy60","three/examples/jsm/loaders/GLTFLoader.js":"O6i0","three/examples/jsm/loaders/ColladaLoader.js":"KAXn","three/examples/jsm/loaders/OBJLoader.js":"LkK9","../../src/urdf-manipulator-element.js":"rMic","../../src/urdf-collisionViewer-element.js":"PVJv","sortablejs":"H54I"}]},{},["H99C"], null)

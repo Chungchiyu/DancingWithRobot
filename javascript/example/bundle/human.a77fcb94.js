@@ -1194,7 +1194,7 @@ function toggleButton(button) {
   if (button === button2D) button2D.disabled = false;
 }
 function updateIs3D(index) {
-  var is3D = groups[selectedGroup].data["J".concat(index + 1)].is3D;
+  is3D = groups[selectedGroup].data["J".concat(index + 1)].is3D;
   buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
   if (!is3D) {
     button2D.classList.add('active');
