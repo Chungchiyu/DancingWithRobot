@@ -811,10 +811,8 @@ document.addEventListener('DOMContentLoaded', () => {
 elements.fixCamBtn.addEventListener('click', () => {
     elements.fixCamBtn.classList.toggle('active');
     if (elements.fixCamBtn.classList.contains('active')) {
-        elements.fixCamBtn.style.color = 'red';
         viewer.getControls.enableRotate = false;
     } else {
-        elements.fixCamBtn.style.color = 'black';
         viewer.getControls.enableRotate = true;
     }
 });

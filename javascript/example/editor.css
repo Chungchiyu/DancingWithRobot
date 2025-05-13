@@ -199,32 +199,33 @@
 .storage-toggle input[type="checkbox"] {
     appearance: none;
     width: 50px;
-    height: 26px;
-    background-color: #ccc;
-    border-radius: 13px;
+    height: 20px;
+    background-color: #cccccc00;
+    border-radius: 3px;
+    border: 1px solid #ccc;
     position: relative;
     cursor: pointer;
     transition: background-color 0.3s;
 }
 
 .storage-toggle input[type="checkbox"]:checked {
-    background-color: #2196F3;
+    background-color: #ffffff;
 }
 
 .storage-toggle input[type="checkbox"]::before {
     content: '';
     position: absolute;
     width: 22px;
-    height: 22px;
-    border-radius: 50%;
+    height: 15px;
+    border-radius: 2px;
     top: 2px;
-    left: 2px;
-    background-color: white;
+    left: 3px;
+    background-color: rgb(181, 181, 181);
     transition: transform 0.3s;
 }
 
 .storage-toggle input[type="checkbox"]:checked::before {
-    transform: translateX(24px);
+    transform: translateX(22px);
 }
 
 #fileInput {
@@ -234,21 +235,21 @@
 #filenameInputContainer {
     width: 100%;
     left: 0;
-    transform: translateY(-10px);
     opacity: 0;
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
+    z-index: 0;
 }
 
 #filenameInputContainer.hidden {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(15px);
     transition: opacity 0.3s ease, transform 0.3s ease;
     pointer-events: none;
 }
 
 #filenameInputContainer.visible {
-    transform: translateY(-30px);
+    transform: translateY(-15px);
     opacity: 1;
     pointer-events: auto;
 }
@@ -256,6 +257,7 @@
 #filenameInput {
     position: absolute;
     width: 200px;
+    transform: translateY(-15px);
     left: calc(48% - 100px);
     padding: 5px;
     border: 1px solid #ccc;
@@ -264,15 +266,48 @@
 
 .custom-file-label {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 5px 8px;
     font-size: 14px;
-    background-color: #d2e8ff;
-    color: black;
-    border-radius: 2px;
+    background-color: rgba(255, 255, 255, 0.25);
+    color: white;
+    border-radius: 3px;
+    border: 1px solid #ffffff;
     cursor: pointer;
     text-align: center;
+    z-index: 1;
 }
 
 .custom-file-label:hover {
-    background-color: #9fceff;
+    color: black;
+    background-color: #ffffff;
+}
+
+#jsonEXBtn {
+    display: inline-block;
+    padding: 5px 8px;
+    font-size: 14px;
+    background-color: #ffffff00;
+    color: white;
+    border-radius: 3px;
+    border: 1px solid #ffffff;
+    cursor: pointer;
+    text-align: center;
+    z-index: 1;
+}
+
+#jsonEXBtn:hover {
+    background-color: #a6a6a6;
+}
+
+.horizontal-buttons {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px; /* 控制按鈕之間的間距 */
+}
+
+.horizontal-buttons button,
+.horizontal-buttons .custom-file-label {
+    flex: 1; /* 讓按鈕等寬 */
+    text-align: center;
 }

@@ -201,9 +201,11 @@
                     <div id="filenameInputContainer" class="hidden">
                         <input type="text" id="filenameInput" placeholder="Enter filename" />
                     </div>
-                    <button id="jsonEXBtn">Export</button>
-                    <label for="fileInput" class="custom-file-label">Import</label>
-                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    <div class="horizontal-buttons">
+                        <label for="fileInput" class="custom-file-label">Import</label>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                        <button id="jsonEXBtn">Export</button>
+                    </div>
                     <div id="output"></div>
                     <div id="toggle-controls"></div>
                     <div id="is-loop" class="toggle">Loop Animation</div>

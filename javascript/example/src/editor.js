@@ -224,8 +224,10 @@ let hideTimeout;
 
 exportBtn.addEventListener('mouseenter', () => {
     clearTimeout(hideTimeout); // 清除任何正在等待的淡出計時器
-    filenameInputContainer.classList.add('visible');
-    filenameInput.focus();
+    setTimeout(() => {
+        filenameInputContainer.classList.add('visible');
+        filenameInput.focus();
+    }, 500); // 等待 0.1 秒後淡入
 });
 
 exportBtn.addEventListener('mouseleave', () => {
