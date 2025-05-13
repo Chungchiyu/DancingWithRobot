@@ -418,3 +418,23 @@ input:focus {
     text-align: center;
     padding: 3px;
 }
+
+#volumeOverlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 20px;
+    z-index: 3;
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
+
+#volumeOverlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}

@@ -198,8 +198,8 @@ viewer.addEventListener('urdf-processed', () => {
 window.vidTimeProxy = new Proxy({ value: vidTime }, {
     set(target, prop, newValue) {
         if (prop === 'value') {
-        console.log(`vidTime changed to: ${newValue}`);
-        video.currentTime = newValue;
+            console.log(`vidTime changed to: ${newValue}`);
+            video.currentTime = newValue;
         }
         target[prop] = newValue;
         return true;
@@ -250,7 +250,7 @@ const updateArmPosition = () => {
                 state.startTime = Date.now() - vidTimeProxy.value * 1e3;
             } else {
                 elements.animToggle.classList.toggle('checked');
-                if (!window.isWebcamActive) 
+                if (!window.isWebcamActive)
                     video.pause();
             }
         }
@@ -260,7 +260,7 @@ const updateArmPosition = () => {
 const updateLoop = () => {
     if (elements.animToggle.classList.contains('checked')) {
         updateArmPosition();
-        
+
     }
     requestAnimationFrame(updateLoop);
     // viewer.update();
@@ -437,10 +437,10 @@ function swapCardsWithAnimation(oldIndex, newIndex) {
         card.style.transform = '';
 
         // Insert the card at the new position
-        if (newIndex >= elements.cardContainer.children.length-1) {
+        if (newIndex >= elements.cardContainer.children.length - 1) {
             elements.cardContainer.appendChild(card);
         } else {
-            elements.cardContainer.insertBefore(card,cards[newIndex]);
+            elements.cardContainer.insertBefore(card, cards[newIndex]);
         }
 
         // Update all card contents
@@ -505,7 +505,7 @@ const addFrameCard = (index) => {
         vidTimeProxy.value = newTime;
         updateJointsData(currentIndex, { time: newTime });
     });
-    
+
 
     card.querySelector('input').addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
@@ -638,7 +638,7 @@ elements.refreshAllBtn.addEventListener('click', () => {
             elements.simLoading.classList.add('hidden');
         }, 10);
     }
-    , 0);
+        , 0);
 });
 
 // Initialize Sortable with swap option
@@ -809,81 +809,214 @@ elements.fixCamBtn.addEventListener('click', () => {
 let videoVolume = 1;
 
 // keyboard functions
-function handleKeyPress(event) {
+let keyPressStartTime = null; // Record the time when the key is pressed
+const LONG_PRESS_THRESHOLD = 500; // Threshold for long press (milliseconds)
+
+document.addEventListener('keydown', (event) => {
     const editor = document.getElementById('editor');
     if (!editor.onfocus) {
-        document.addEventListener('keyup', function(event) {
-            
-            if (event.key === 'Delete') {
-                const card = elements.cardContainer.querySelector('.highlighted');
-                if (card) {
-                    const index = Array.from(elements.cardContainer.children).indexOf(card);
-                    if (index != 0)
-                        highlightCard(card.previousElementSibling);
-                    else if (elements.cardContainer.childNodes.length > 1)
-                        highlightCard(card.nextElementSibling);
-                    window.jointsData.splice(index, 1);
-                    elements.cardContainer.removeChild(card);
-                    const marker = elements.progressContainer.querySelectorAll('.progress-marker');
-                    elements.progressContainer.removeChild(marker[index]);
+        if (!keyPressStartTime) {
+            keyPressStartTime = Date.now(); // Record the time when the key is pressed
+        }
 
-                    updateCardNumbers();
-                }
-            }
-
-            if (event.key === 'ArrowUp') {
-                const card = elements.cardContainer.querySelector('.highlighted');
-                if (card.previousElementSibling)
-                    highlightCard(card.previousElementSibling);
-
-            } else if (event.key === 'ArrowDown') {
-                const card = elements.cardContainer.querySelector('.highlighted');
-                if (card.nextElementSibling)
-                    highlightCard(card.nextElementSibling);
-            }
-
-
-            if (event.key === 'm') {
-                if (video.volume != 0) {
-                    video.volume = 0;
-                }
-                else {
-                    video.volume = videoVolume;
-                }
-            }
-
-            if (event.key === '+') {
-                video.volume += 0.1;
-                videoVolume = video.volume;
-            } else if (event.key === '-') {
-                video.volume -= 0.1;
-                videoVolume = video.volume;
-            }
-
-            if (event.key === ' ') {
-                if (video.paused)
-                    video.play();
-                else
-                    video.pause();
-            }
-
-            if (event.key === 'p') {
-                elements.animToggle.classList.toggle('checked');
-                if (elements.animToggle.classList.contains('checked')) {
-                    state.startTime = Date.now() - vidTimeProxy.value * 1e3;
-                    video.play();
-                    window.linkRobot.classList.remove('checked');
-                } else {
-                    video.pause();
-                }
-            }
-        });
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'ArrowLeft')
-                vidTimeProxy.value -= 0.1;
-            else if (event.key === 'ArrowRight')
-                vidTimeProxy.value += 0.1;
-        });
+        // Handle operations during long press if needed
+        if (event.repeat) {
+            handleLongPress(event.key); // Operations to repeat during long press
+        }
     }
+});
+
+document.addEventListener('keyup', (event) => {
+    const editor = document.getElementById('editor');
+    if (!editor.onfocus) {
+        const pressDuration = Date.now() - keyPressStartTime; // Calculate the duration of the press
+        keyPressStartTime = null; // Reset the press time
+
+        if (pressDuration >= LONG_PRESS_THRESHOLD) {
+            handleLongPressRelease(event.key); // Operations after releasing a long press
+        } else {
+            handleShortPress(event.key); // Operations for a short press
+        }
+    }
+});
+
+// Short press operations
+function handleShortPress(key) {
+    switch (key) {
+        case 'Delete':
+            handleDeleteCard();
+            break;
+        case 'ArrowUp':
+            handleGoToLastCard();
+            break;
+        case 'ArrowDown':
+            handleGoToNextCard();
+            break;
+        case 'm':
+            handleMute();
+            break;
+        case '+':
+            handleVolumeUp();
+            break;
+        case '-':
+            handleVolumeDown();
+            break;
+        case ' ':
+            handlePlayPause();
+            break;
+        case 'ArrowLeft':
+            handleSeekBackward();
+            break;
+        case 'ArrowRight':
+            handleSeekForward();
+            break;
+        case 'p':
+            handleToggleAnimation();
+            break;
+    }
+}
+
+// Long press operations (executed continuously)
+function handleLongPress(key) {
+    switch (key) {
+        case 'Delete':
+            handleDeleteCard();
+            break;
+        case 'ArrowUp':
+            handleGoToLastCard();
+            break;
+        case 'ArrowDown':
+            handleGoToNextCard();
+            break;
+        case '+':
+            handleVolumeUp();
+            break;
+        case '-':
+            handleVolumeDown();
+            break;
+        case 'ArrowLeft':
+            handleSeekBackward();
+            break;
+        case 'ArrowRight':
+            handleSeekForward();
+            break;
+    }
+}
+
+// Operations after releasing a long press
+function handleLongPressRelease(key) {
+    // switch (key) {
+    //     case 'ArrowUp':
+    //         console.log('Released after long press: stop moving up');
+    //         break;
+    //     case 'ArrowDown':
+    //         console.log('Released after long press: stop moving down');
+    //         break;
+    //     default:
+    //         console.log(`Released after long press: released ${key}`);
+    // }
+}
+
+// keyfunction action
+function handleDeleteCard() {
+    const card = elements.cardContainer.querySelector('.highlighted');
+    if (card) {
+        const index = Array.from(elements.cardContainer.children).indexOf(card);
+        if (index != 0)
+            highlightCard(card.previousElementSibling);
+        else if (elements.cardContainer.childNodes.length > 1)
+            highlightCard(card.nextElementSibling);
+        window.jointsData.splice(index, 1);
+        elements.cardContainer.removeChild(card);
+        const marker = elements.progressContainer.querySelectorAll('.progress-marker');
+        elements.progressContainer.removeChild(marker[index]);
+
+        updateCardNumbers();
+    }
+}
+
+function handleGoToLastCard() {
+    const card = elements.cardContainer.querySelector('.highlighted');
+    if (card.previousElementSibling)
+        highlightCard(card.previousElementSibling);
+}
+
+function handleGoToNextCard() {
+    const card = elements.cardContainer.querySelector('.highlighted');
+    if (card.nextElementSibling)
+        highlightCard(card.nextElementSibling);
+}
+
+function handleMute() {
+    if (video.volume != 0) {
+        video.volume = 0;
+    }
+    else {
+        video.volume = videoVolume;
+    }
+
+    // Display volume overlay
+    showVolumeOverlay(`Volume: ${(video.volume * 100).toFixed(0)}%`);
+}
+
+function handleVolumeUp() {
+    if (video.volume >= 0.9) {
+        video.volume = 1;
+    } else {
+        video.volume += 0.1;
+    }
+    videoVolume = video.volume;
+
+    // Display volume overlay
+    showVolumeOverlay(`Volume: ${(video.volume * 100).toFixed(0)}%`);
+}
+
+function handleVolumeDown() {
+    if (video.volume <= 0.1) {
+        video.volume = 0;
+    } else {
+        video.volume -= 0.1;
+    }
+    videoVolume = video.volume;
+
+    // Display volume overlay
+    showVolumeOverlay(`Volume: ${(video.volume * 100).toFixed(0)}%`);
+}
+
+function showVolumeOverlay(text) {
+    const volumeOverlay = document.getElementById('volumeOverlay');
+    volumeOverlay.textContent = text;
+    volumeOverlay.classList.remove('hidden');
+
+    // Set a new timeout
+    setTimeout(() => {
+        volumeOverlay.classList.add('hidden');
+    }, 500); // Hide after 1 second
+}
+
+function handlePlayPause() {
+    if (video.paused)
+        video.play();
+    else
+        video.pause();
+}
+
+function handleToggleAnimation() {
+    elements.animToggle.classList.toggle('checked');
+    if (elements.animToggle.classList.contains('checked')) {
+        state.startTime = Date.now() - vidTimeProxy.value * 1e3;
+        video.play();
+        window.linkRobot.classList.remove('checked');
+    } else {
+        video.pause();
+    }
+}
+
+function handleSeekBackward() {
+    const interval = parseFloat(document.getElementById('capture-interval').value);
+    vidTimeProxy.value -= interval;
+}
+function handleSeekForward() {
+    const interval = parseFloat(document.getElementById('capture-interval').value);
+    vidTimeProxy.value += interval;
 }

@@ -118,7 +118,7 @@ function resizeCanvas() {
   if (containerWidth / containerHeight > videoAspectRatio) {
     canvasHeight = containerHeight;
     canvasWidth = canvasHeight * videoAspectRatio;
-  } 
+  }
   // video width reach containerWidth limit
   else {
     canvasWidth = containerWidth;
@@ -192,8 +192,8 @@ function drawPoses(poses) {
 
     if (linkRobot.classList.contains('checked')) {
       Object.keys(window.viewer.robot.joints).slice(0, 6).map((jointName, index) => {
-          if (!window.lockJoints[index].classList.contains('locked'))
-            window.viewer.setJointValue(jointName, Object.entries(remapAngles)[index][1] * DEG2RAD);
+        if (!window.lockJoints[index].classList.contains('locked'))
+          window.viewer.setJointValue(jointName, Object.entries(remapAngles)[index][1] * DEG2RAD);
       });
     }
   }
@@ -239,7 +239,7 @@ function angleMapping(angles, groupData) {
 
       if (angleOut[joint] < limit_lower)
         angleOut[joint] = limit_lower;
-      if (angleOut[joint] > limit_upper) 
+      if (angleOut[joint] > limit_upper)
         angleOut[joint] = limit_upper;
 
     } else {
@@ -278,10 +278,10 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
           return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
         });
         // if (value.isMirror) {
-          const [a1, b1, c1] = points_mirrorred.map(i => {
-            if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
-            return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
-          });
+        const [a1, b1, c1] = points_mirrorred.map(i => {
+          if (["OH", "DV", "RH", "IH", "UV", "LH"].includes(i)) return i;
+          return keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 };
+        });
         // }
         if ((a.score > 0.2 && b.score > 0.2) || typeof c === 'string') {
           if (value.isMirror) {
@@ -298,7 +298,7 @@ function calculateAllAngles(keypoints3D, groupName = "default") {
         // Handle 4-point case
         const [a, b, c, d] = points.map(i => keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 });
         const [a1, b1, c1, d1] = points.map(i => keypoints3D[parseInt(i)] || { x: 0, y: 0, z: 0, score: 0 });
-      
+
         if (a.score > 0.2 && b.score > 0.2 && c.score > 0.2 && d.score > 0.2) {
           if (value.isMirror) {
             const angle1 = calculateAngle(a, b, c, d);
@@ -713,7 +713,7 @@ async function generateThumbnails() {
   thumbnails.forEach(thumbnail => thumbnail.style.display = 'block');
 
   vidTimeProxy.value = 0;
-  
+
 }
 
 async function setVideoCurrentTime(video, time) {
@@ -841,7 +841,8 @@ const currentTimeEl = document.getElementById('current-time');
 const totalTimeEl = document.getElementById('total-time');
 
 video.addEventListener('timeupdate', () => {
-  currentTimeEl.textContent = formatTime(video.currentTime);
+  currentTimeEl.textContent = formatTime(video.currentTime)
+    + video.currentTime.toString().slice(-7, -4);
   updateProgress();
   if (video.paused) {
     estimatePoses();
@@ -961,7 +962,7 @@ let hideTimeout, showTimeout;
 // Show settings on hover
 autoCaptureButton.addEventListener('mouseenter', () => {
   showTimeout = setTimeout(() => {
-      intervalSettings.classList.add('visible');
+    intervalSettings.classList.add('visible');
   }, 200); // 0.2s delay
   clearTimeout(hideTimeout);
 });
@@ -1126,7 +1127,7 @@ async function autoCaptureProcess(interval) {
 
     // Return to beginning of video
     vidTimeProxy.value = 0;
-    
+
 
     // Call update for frame cards if that function exists
     if (typeof window.updateMarkers === 'function') {

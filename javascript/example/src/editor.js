@@ -258,7 +258,7 @@ function exportAndDownload() {
     const jsonData = { groups, jointsData };
     const jsonString = JSON.stringify(jsonData, null, 2);
 
-    const filename = exportBtn.dataset.filename || 'joints_data';
+    const filename = filenameInput.value.trim() || 'joints_data';
     downloadFile(jsonString, `${filename}.json`, 'application/json');
 
     // Export xlsx file
