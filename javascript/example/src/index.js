@@ -75,7 +75,7 @@ elements.isLoop.addEventListener('click', () => {
 elements.controlsToggle.addEventListener('click', () => elements.controlsel.classList.toggle('hidden'));
 
 document.getElementById("help-icon").addEventListener("click", function() {
-    window.open("https://twinpose.space/", "_blank");
+    window.open("https://hackmd.io/@NickChung/TwinPose_Manual", "_blank");
 });
 
 viewer.addEventListener('urdf-change', () => {

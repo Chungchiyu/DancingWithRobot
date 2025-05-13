@@ -1,5 +1,5 @@
 #right-side {
-    position: relative;
+    /* position: relative; */
     font-family: "Roboto", helvetica, arial, sans-serif;
     animation: fade 3s ease;
     color: white;
@@ -9,6 +9,7 @@
 }
 
 urdf-viewer {
+    /* position: relative; */
     padding: 0;
     margin: 0;
     height: 100%;
