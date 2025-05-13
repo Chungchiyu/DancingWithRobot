@@ -74,6 +74,10 @@ elements.isLoop.addEventListener('click', () => {
 
 elements.controlsToggle.addEventListener('click', () => elements.controlsel.classList.toggle('hidden'));
 
+document.getElementById("help-icon").addEventListener("click", function() {
+    window.location.href = "../../README.md";
+});
+
 viewer.addEventListener('urdf-change', () => {
     Object.values(state.sliders).forEach(sl => sl.remove());
     state.sliders = {};
