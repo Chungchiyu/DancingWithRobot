@@ -20,6 +20,7 @@ const DEG2RAD = Math.PI / 180;
 let poseNetLoaded = false;
 let lastPoses = [];
 let lastPoseAngles;
+window.lastPoseAnglesGlobal;
 let videoAspectRatio = 16 / 9;
 let lowResCanvas;
 let lowResolution = 720;
@@ -187,6 +188,7 @@ function drawPoses(poses) {
 
     const remapAngles = angleMapping(angles, window.groups[window.selectedGroup].data);
     lastPoseAngles = remapAngles;
+    window.lastPoseAnglesGlobal = lastPoseAngles;
 
     displayAngles(ctx, angles);
 
@@ -854,20 +856,6 @@ function formatTime(seconds) {
   const remainingSeconds = Math.floor(seconds % 60);
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 }
-
-document.addEventListener('keyup', function (event) {
-  if (event.key === 'Tab') {
-    event.preventDefault();
-    if (poseDetectToggle.classList.contains('checked'))
-      captureData(lastPoseAngles);
-  }
-});
-
-document.addEventListener('keydown', function (event) {
-  if (event.key === 'Tab') {
-    event.preventDefault();
-  }
-});
 
 const autoCaptureButton = document.getElementById('scatter-data');
 

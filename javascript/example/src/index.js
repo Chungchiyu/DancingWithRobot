@@ -39,6 +39,7 @@ const elements = {
     waitBtn: document.querySelector('.waitBtn'),
     vidTime: document.getElementById('vidTime'),
     simLoading: document.getElementById('sim-loading'),
+    poseDetectToggle: document.getElementById('poseDetect')
 };
 
 // Constants
@@ -564,6 +565,14 @@ const highlightCard = (card, updateVidTime = true) => {
     });
     elements.cardContainer.childNodes.forEach(child => child.classList.remove('highlighted'));
     card.classList.add('highlighted');
+
+    // Check if the card is visible in the viewport
+    const cardRect = card.getBoundingClientRect();
+    const containerRect = elements.cardContainer.getBoundingClientRect();
+    if (cardRect.top < containerRect.top || cardRect.bottom > containerRect.bottom) {
+        // Scroll the container to bring the card into view
+        card.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+    }
 };
 
 elements.copyBtn.addEventListener('click', () => {
@@ -873,6 +882,9 @@ function handleShortPress(key) {
         case 'p':
             handleToggleAnimation();
             break;
+        case 'Tab':
+            handleAddCard();
+            break;
     }
 }
 
@@ -899,6 +911,9 @@ function handleLongPress(key) {
             break;
         case 'ArrowRight':
             handleSeekForward();
+            break;
+        case 'Tab':
+            handleAddCard();
             break;
     }
 }
@@ -1019,4 +1034,10 @@ function handleSeekBackward() {
 function handleSeekForward() {
     const interval = parseFloat(document.getElementById('capture-interval').value);
     vidTimeProxy.value += interval;
+}
+
+function handleAddCard() {
+    if (elements.poseDetectToggle.classList.contains('checked'))
+        window.captureData(window.lastPoseAnglesGlobal);
+    handleSeekForward();
 }
