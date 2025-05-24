@@ -886,15 +886,21 @@ function addGroup() {
     name = 'default';
   }
   var groupData = {};
-  for (var _i = 1; _i <= 6; _i++) {
+  var _loop2 = function _loop2() {
     var cardContent = document.querySelector(".angleCard:nth-of-type(".concat(_i, ") .angleCard-content")).textContent;
     groupData["J".concat(_i)] = {
       angles: cardContent,
       mappingData: _objectSpread({}, defaultAxisValues["J".concat(_i)]),
-      is3D: false,
+      is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(function (r) {
+        return cardContent.includes(r);
+      }),
       isMirror: false
     };
+  };
+  for (var _i = 1; _i <= 6; _i++) {
+    _loop2();
   }
+  groupData.J3.isMirror = true; // J3 is always mirror
   groups.push({
     name: name,
     data: groupData
@@ -1194,7 +1200,7 @@ function toggleButton(button) {
   if (button === button2D) button2D.disabled = false;
 }
 function updateIs3D(index) {
-  var is3D = groups[selectedGroup].data["J".concat(index + 1)].is3D;
+  is3D = groups[selectedGroup].data["J".concat(index + 1)].is3D;
   buttonSlider.style.transform = !is3D ? 'translateY(0)' : 'translateY(40px)';
   if (!is3D) {
     button2D.classList.add('active');

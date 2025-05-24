@@ -139,7 +139,7 @@ var canvas = document.getElementById('canvas');
 window.progressContainer = document.getElementById('progress-container');
 var progressFilled = document.getElementById('progress-filled');
 var progressThumb = document.getElementById('progress-thumb');
-var loading = document.querySelector('.loading');
+var loading = document.getElementById('vid-loading');
 var fileInput = document.getElementById('file-input');
 var selectVideoButton = document.getElementById('select-video');
 // const playPauseButton = document.getElementById('play-pause');
@@ -155,6 +155,7 @@ var DEG2RAD = Math.PI / 180;
 var poseNetLoaded = false;
 var lastPoses = [];
 var lastPoseAngles;
+window.lastPoseAnglesGlobal;
 var videoAspectRatio = 16 / 9;
 var lowResCanvas;
 var lowResolution = 720;
@@ -290,17 +291,23 @@ function resizeCanvas() {
   var containerWidth = containerRect.width;
   var containerHeight = containerRect.height;
   var canvasWidth, canvasHeight;
+
+  // video height reach containerHeight limit
   if (containerWidth / containerHeight > videoAspectRatio) {
     canvasHeight = containerHeight;
     canvasWidth = canvasHeight * videoAspectRatio;
-  } else {
+  }
+  // video width reach containerWidth limit
+  else {
     canvasWidth = containerWidth;
     canvasHeight = canvasWidth / videoAspectRatio;
   }
   canvas.width = canvasWidth;
   canvas.height = canvasHeight;
-  canvas.style.position = 'absolute';
+
+  // canvas.style.position = 'absolute';
   canvas.style.top = "".concat((containerHeight - canvasHeight) / 2, "px");
+  canvas.style.left = "".concat((containerWidth - canvasWidth) / 2, "px");
   if (lastPoses.length > 0) {
     drawPoses(lastPoses);
   }
@@ -349,6 +356,7 @@ function drawPoses(poses) {
     var angles = calculateAllAngles(pose.keypoints3D, window.groupNameSelected);
     var remapAngles = angleMapping(angles, window.groups[window.selectedGroup].data);
     lastPoseAngles = remapAngles;
+    window.lastPoseAnglesGlobal = lastPoseAngles;
     displayAngles(ctx, angles);
     if (linkRobot.classList.contains('checked')) {
       Object.keys(window.viewer.robot.joints).slice(0, 6).map(function (jointName, index) {
@@ -377,6 +385,9 @@ function angleMapping(angles, groupData) {
   var angleOut = {};
   for (var i = 1; i <= 6; i++) {
     var joint = "J".concat(i);
+    var robot_joint = "joint_".concat(i);
+    var limit_lower = viewer.robot.joints[robot_joint].limit.lower * 180 / Math.PI;
+    var limit_upper = viewer.robot.joints[robot_joint].limit.upper * 180 / Math.PI;
     var angle = angles[joint];
     // console.log(groupData[joint])
     var mappingData = groupData[joint].mappingData;
@@ -387,12 +398,15 @@ function angleMapping(angles, groupData) {
       // Map the angle using the values from mappingData
       angleOut[joint] = map(angle, mappingData.PL, mappingData.PR, mappingData.AHL, mappingData.AHR);
       if (angleOut[joint] === undefined || isNaN(angleOut[joint])) angleOut[joint] = 0;
+      if (angleOut[joint] < limit_lower) angleOut[joint] = limit_lower;
+      if (angleOut[joint] > limit_upper) angleOut[joint] = limit_upper;
     } else {
       // If angle is undefined or NaN, use a default value or skip
       angleOut[joint] = 0; // or any other default value
     }
     angleOut[joint] = Math.round(angleOut[joint] * 10) / 10;
   }
+
   // console.log(angleOut);
   return angleOut;
 }
@@ -650,7 +664,7 @@ function displayAngles(context, angles) {
   context.fillStyle = 'white';
   context.strokeStyle = 'black';
   context.lineWidth = 3;
-  var y = 30;
+  var y = 0.07 * canvas.height;
   var text = "Group: ".concat(window.groupNameSelected);
   context.strokeText(text, 10, y);
   context.fillText(text, 10, y);
@@ -666,7 +680,7 @@ function displayAngles(context, angles) {
   }
 
   // Right side display
-  y = 30;
+  y = 0.07 * canvas.height;
   var groupText = "Projections";
   var groupTextWidth = context.measureText(groupText).width;
   context.strokeText(groupText, canvas.width - groupTextWidth - 10, y);
@@ -700,7 +714,7 @@ function _loadVideo() {
           }
           video.src = URL.createObjectURL(file);
           isVideoLoaded = true;
-          loading.style.display = 'block';
+          loading.classList.remove('hidden');
           canvas.style.display = 'none';
           selectVideoButton.style.display = 'none';
           _context4.next = 9;
@@ -996,7 +1010,7 @@ function _generateThumbnails() {
           _context7.next = 7;
           break;
         case 20:
-          loading.style.display = 'none';
+          loading.classList.add('hidden');
           thumbnails = document.querySelectorAll('.progress-thumbnail');
           thumbnails.forEach(function (thumbnail) {
             return thumbnail.style.display = 'block';
@@ -1162,7 +1176,7 @@ document.querySelector('.overlay').addEventListener('click', function () {
 var currentTimeEl = document.getElementById('current-time');
 var totalTimeEl = document.getElementById('total-time');
 video.addEventListener('timeupdate', function () {
-  currentTimeEl.textContent = formatTime(video.currentTime);
+  currentTimeEl.textContent = formatTime(video.currentTime) + video.currentTime.toString().slice(-7, -4);
   updateProgress();
   if (video.paused) {
     estimatePoses();
@@ -1173,48 +1187,40 @@ function formatTime(seconds) {
   var remainingSeconds = Math.floor(seconds % 60);
   return "".concat(minutes, ":").concat(remainingSeconds.toString().padStart(2, '0'));
 }
-document.addEventListener('keyup', function (event) {
-  if (event.key === 'Tab') {
-    event.preventDefault();
-    if (poseDetectToggle.classList.contains('checked')) captureData(lastPoseAngles);
-  }
-});
-document.addEventListener('keydown', function (event) {
-  if (event.key === 'Tab') {
-    event.preventDefault();
-  }
-});
 var autoCaptureButton = document.getElementById('scatter-data');
 
 // Create interval settings that appear on hover
 var intervalSettings = document.createElement('div');
 intervalSettings.className = 'interval-settings';
-intervalSettings.innerHTML = "\n  <label for=\"capture-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"capture-interval\" min=\"0.01\" max=\"10\" step=\"0.1\" value=\"1\">\n";
+intervalSettings.innerHTML = "\n  <label for=\"capture-interval\">Interval (sec):</label>\n  <input type=\"number\" id=\"capture-interval\" min=\"0.01\" max=\"10\" value=\"1\">\n";
 intervalSettings.style.display = 'none';
 document.querySelector('.controls').appendChild(intervalSettings);
 
 // Add CSS for components
 var style = document.createElement('style');
-style.textContent = "\n.interval-settings {\n  position: absolute;\n  background: rgba(0, 0, 0, 0.8);\n  padding: 10px;\n  border-radius: 5px;\n  bottom: 60px;\n  right: 60%;\n  color: white;\n  opacity: 0;\n  transition: opacity 0.3s ease;\n  pointer-events: none;\n}\n\n.interval-settings.visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.interval-settings input {\n  width: 60px;\n  margin-left: 5px;\n  padding: 2px 5px;\n}\n\n.progress-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.7);\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  z-index: 9999;\n}\n\n.progress-message {\n  background-color: white;\n  padding: 20px;\n  border-radius: 8px;\n  font-size: 18px;\n  text-align: center;\n  margin-bottom: 15px;\n}\n\n.cancel-button {\n  background-color: #ff4444;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 5px;\n  cursor: pointer;\n  font-size: 16px;\n}\n\n.cancel-button:hover {\n  background-color: #cc0000;\n}\n";
+style.textContent = "\n.interval-settings {\n  position: absolute;\n  background: rgba(0, 0, 0, 0.8);\n  padding: 10px;\n  border-radius: 5px;\n  bottom: 60px;\n  left: 50%;\n  transform: translateX(-50%);\n  color: white;\n  opacity: 0;\n  transition: opacity 0.3s ease;\n  pointer-events: none;\n}\n\n.interval-settings.visible {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.interval-settings input {\n  -webkit-appearance: none;\n  width: 30px;\n  margin-left: 5px;\n  padding: 2px 5px;\n}\n\n#capture-interval::-webkit-outer-spin-button,\n#capture-interval::-webkit-inner-spin-button {\n  -webkit-appearance: none; /* \u96B1\u85CF WebKit \u700F\u89BD\u5668\u4E2D\u7684\u4E0A\u4E0B\u6309\u9215 */\n  -moz-appearance: textfield; /* \u96B1\u85CF Firefox \u4E2D\u7684\u4E0A\u4E0B\u6309\u9215 */\n  appearance: none; /* \u6A19\u6E96\u5C6C\u6027\uFF0C\u9069\u7528\u65BC\u652F\u6301\u7684\u700F\u89BD\u5668 */\n}\n\n.progress-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  background-color: rgba(0, 0, 0, 0.7);\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  z-index: 9999;\n}\n\n.progress-message {\n  background-color: white;\n  padding: 20px;\n  border-radius: 8px;\n  font-size: 18px;\n  text-align: center;\n  margin-bottom: 15px;\n}\n\n.cancel-button {\n  background-color: #ff4444;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 5px;\n  cursor: pointer;\n  font-size: 16px;\n}\n\n.cancel-button:hover {\n  background-color: #cc0000;\n}\n";
 document.head.appendChild(style);
 
 // Setup hover behavior with timers
-var hideTimeout;
+var hideTimeout, showTimeout;
 
 // Show settings on hover
 autoCaptureButton.addEventListener('mouseenter', function () {
+  showTimeout = setTimeout(function () {
+    intervalSettings.classList.add('visible');
+  }, 200); // 0.2s delay
   clearTimeout(hideTimeout);
-  intervalSettings.classList.add('visible');
 });
 
 // Setup hover detection for both elements
 autoCaptureButton.addEventListener('mouseleave', function () {
   clearTimeout(hideTimeout);
+  clearTimeout(showTimeout);
   hideTimeout = setTimeout(function () {
     if (!isHovering(intervalSettings)) {
       intervalSettings.classList.remove('visible');
     }
-  }, 500); // 0.5秒延遲
+  }, 500); // 0.5s delay
 });
 intervalSettings.addEventListener('mouseenter', function () {
   clearTimeout(hideTimeout);

@@ -136,6 +136,7 @@ var showEditorBtn = document.getElementById('showEditor');
 var editorContainer = document.getElementById('editorContainer');
 var editorHeader = document.getElementById('editorHeader');
 var downloadBtn = document.getElementById('code-download');
+var simLoading = document.getElementById('sim-loading');
 function updateLineNumbers() {
   var lines = editor.value.split('\n');
   lineNumbers.innerHTML = lines.map(function (_, index) {
@@ -165,7 +166,8 @@ downloadBtn.addEventListener('click', function () {
   });
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'code.txt';
+  var filename = "".concat(exportBtn.dataset.filename, "_code.hrb") || 'code.hrb';
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -291,13 +293,15 @@ function updateEditorWithJointsData(jointsData) {
       var run = "";
       if (index > 0) {
         var duration = Math.round((jointsData[index].time - jointsData[index - 1].time) * 1000);
-        run = "PTP_TIME P".concat(index, " CONT TIME=").concat(duration, " msec Acc=100% TOOL[0] BASE[0]");
+        run = "PTP_TIME P".concat(index, " FINE=1 TIME=").concat(duration, " msec Acc=100% TOOL[0] BASE[0]");
       } else {
-        run = "PTP P".concat(index, " CONT=60% Vel=10% Acc=100%");
+        run = "PTP P".concat(index, " FINE=1 Vel=10% Acc=100%");
       }
       return comment + point + run + "\n";
     }).join('\n');
-    editor.value = formattedData;
+    var file_head = ";Version:310\n;[Point&S]\n;[Point&E]\n;[Program&SV2]\n";
+    var file_end = ";[Program&E]\n";
+    editor.value = file_head + formattedData + file_end;
     updateLineNumbers();
     if (editorContainer.classList.contains('expanded')) {
       adjustEditorToContentWidth();
@@ -317,32 +321,55 @@ function setupJointsDataProxy() {
   window.jointsData = new Proxy(window.jointsData || [], handler);
 }
 window.addEventListener('load', setupJointsDataProxy);
+var exportBtn = document.getElementById('jsonEXBtn');
+var filenameInputContainer = document.getElementById('filenameInputContainer');
+var filenameInput = document.getElementById('filenameInput');
+var hideTimeout;
+exportBtn.addEventListener('mouseenter', function () {
+  clearTimeout(hideTimeout); // 清除任何正在等待的淡出計時器
+  setTimeout(function () {
+    filenameInputContainer.classList.add('visible');
+    filenameInput.focus();
+  }, 500); // 等待 0.1 秒後淡入
+});
+exportBtn.addEventListener('mouseleave', function () {
+  hideTimeout = setTimeout(function () {
+    filenameInputContainer.classList.remove('visible');
+    filenameInput.blur();
+  }, 500); // 等待 0.5 秒後淡出
+});
+filenameInputContainer.addEventListener('mouseenter', function () {
+  clearTimeout(hideTimeout); // 滑鼠進入時取消淡出計時器
+});
+filenameInputContainer.addEventListener('mouseleave', function () {
+  hideTimeout = setTimeout(function () {
+    filenameInputContainer.classList.remove('visible');
+  }, 500); // 滑鼠離開時重新啟動淡出計時器
+});
+filenameInput.addEventListener('input', function () {
+  var customFilename = filenameInput.value.trim();
+  if (customFilename) {
+    exportBtn.dataset.filename = customFilename;
+  } else {
+    exportBtn.dataset.filename = 'joints_data';
+  }
+});
 function exportAndDownload() {
   var jsonData = {
     groups: groups,
     jointsData: jointsData
   };
-  console.log(jointsData);
   var jsonString = JSON.stringify(jsonData, null, 2);
+  var filename = filenameInput.value.trim() || 'joints_data';
+  downloadFile(jsonString, "".concat(filename, ".json"), 'application/json');
 
-  // Download JSON
-  downloadFile(jsonString, 'generated_data.json', 'application/json');
+  // Export xlsx file
+  // const workbook = XLSX.utils.book_new();
+  // const jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
+  // XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
 
-  // Download Excel
-  var workbook = XLSX.utils.book_new();
-
-  // Process groups data
-  // const groupsSheet = XLSX.utils.json_to_sheet(processGroupsData(groups));
-  // XLSX.utils.book_append_sheet(workbook, groupsSheet, "Groups");
-
-  // Process jointsData
-  var jointsDataSheet = XLSX.utils.json_to_sheet(processJointsData(jointsData));
-  XLSX.utils.book_append_sheet(workbook, jointsDataSheet, "JointsData");
-  var excelBuffer = XLSX.write(workbook, {
-    bookType: 'xlsx',
-    type: 'array'
-  });
-  downloadFile(excelBuffer, 'generated_data.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  // const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  // downloadFile(excelBuffer, `${filename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
 }
 function processGroupsData(groups) {
   var processedGroups = [];
@@ -397,7 +424,14 @@ var output = document.getElementById('output');
 var clearBtn = document.querySelector(".clearBtn");
 
 // Add event listener for file selection
-fileInput.addEventListener('change', handleFileSelect);
+fileInput.addEventListener('change', function (e) {
+  simLoading.classList.remove('hidden'); // 立即移除 hidden 類
+
+  // 使用 requestAnimationFrame 確保渲染完成後再執行後續操作
+  requestAnimationFrame(function () {
+    handleFileSelect(e);
+  });
+});
 clearBtn.addEventListener('click', function () {
   fileInput.value = '';
 });
@@ -419,11 +453,17 @@ function handleFileSelect(event) {
           window.addFrameCard(i);
         }
         // You can perform further operations with jsonData here
+        output.textContent = file.name;
+        filenameInput.value = file.name.replace('.json', '');
         console.log('Successfully imported JSON data:', jsonData);
       } catch (error) {
         // Handle JSON parsing errors
         output.textContent = 'Error parsing JSON: ' + error.message;
         console.error('Error parsing JSON:', error);
+      } finally {
+        setTimeout(function () {
+          simLoading.classList.add('hidden');
+        }, 10);
       }
     };
 

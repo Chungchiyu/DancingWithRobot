@@ -45,8 +45,11 @@
             font-weight: bold;
             transition: opacity 2s ease-out;
         }
-        
-        .hiddenL { opacity: 0; pointer-events: none; }</style>
+
+        .hiddenL {
+            opacity: 0;
+            pointer-events: none;
+        }</style>
 </head>
 
 <body tabindex="0">
@@ -71,16 +74,17 @@
                     </div>
                     <div class="control-buttons">
                         <button id="capture-data" class="active">Capture</button>
-                        <button id="scatter-data" class="active">Scatter</button>
                         <button id="update-pose" class="active">Update</button>
+                        <button id="scatter-data" class="active">Scatter</button>
                         <button id="flip-button" class="">Flip Cam</button>
                         <button id="restart" class="active">Restart</button>
                     </div>
                 </div>
-                <div class="loading">
+                <div id="vid-loading" class="loading hidden">
                     <div class="spinner"></div>
                     Loading...
                 </div>
+                <div id="volumeOverlay" class="hidden"></div>
                 <div class="close-button" id="close-button">X</div>
                 <button class="pose-button" id="pose-button">+</button>
                 <button class="cam-button" id="cam-button"><i class="fa fa-video-camera"></i></button>
@@ -172,6 +176,10 @@
             <div class="handle"></div>
         </div>
         <div class="side" id="right-side">
+            <div id="sim-loading" class="loading hidden">
+                <div class="spinner"></div>
+                Loading...
+            </div>
             <urdf-viewer up="+Z" display-shadow="" tabindex="1"></urdf-viewer>
             <div id="menu">
                 <ul id="urdf-options" class="hidden">
@@ -183,11 +191,18 @@
 
                 <div id="controls">
                     <div class="storage-toggle">
+                        <i id="help-icon" class="fa fa-question-circle" style="cursor: pointer; padding: 0px 10px; font-size: x-large;"></i>
                         <label for="enable-storage">Local Save</label>
                         <input type="checkbox" id="enable-storage">
                     </div>
-                    <button id="jsonEXBtn">Export</button>
-                    <input type="file" id="fileInput" accept=".json">
+                    <div id="filenameInputContainer" class="hidden">
+                        <input type="text" id="filenameInput" placeholder="Enter filename">
+                    </div>
+                    <div class="horizontal-buttons">
+                        <label for="fileInput" class="custom-file-label">Import</label>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                        <button id="jsonEXBtn">Export</button>
+                    </div>
                     <div id="output"></div>
                     <div id="toggle-controls"></div>
                     <div id="is-loop" class="toggle">Loop Animation</div>
@@ -210,6 +225,8 @@
                         <div class="button">
                             <button class="copyBtn btn">Copy</button>
                             <button class="refreshBtn btn">Refresh</button>
+                            <button class="refreshAllBtn btn">Refresh All</button>
+                            <br><br>
                             <button class="clearBtn btn">Clear</button>
                             <button class="homeBtn btn">Home</button>
                             <!-- <button class="waitBtn btn">Wait</button> -->
@@ -236,11 +253,11 @@
             <div id="poseCard-container"></div>
         </div>
     </div>
-    
+
     <script>window.addEventListener("load", function () {
   document.getElementById("loading").classList.add("hiddenL");
 });</script>
-    
+
     <script type="module" src="src.a2b27638.js"></script>
     <script type="module" src="human.a77fcb94.js"></script>
     <script type="module" src="player.13e516db.js"></script>
