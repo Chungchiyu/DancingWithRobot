@@ -587,11 +587,11 @@ function addGroup() {
         groupData[`J${i}`] = {
             angles: cardContent,
             mappingData: { ...defaultAxisValues[`J${i}`] },
-            is3D: false,
+            is3D: ['RH', 'IH', 'UV', 'DV', 'LH', 'OH'].some(r=> cardContent.includes(r)),
             isMirror: false
         };
     }
-
+    groupData.J3.isMirror = true; // J3 is always mirror
     groups.push({ name, data: groupData });
     updateGroups();
     document.getElementById('newGroupName').value = '';
